@@ -13,7 +13,7 @@ export const TimetableCard: React.FC<TimetableCardProps> = ({ entry, onNavigate 
     <div
       className={`rounded-2xl border p-4 transition-all duration-200 ${
         entry.isNext
-          ? 'bg-gradient-to-br from-[#005F73] to-[#0A9396] text-white border-transparent shadow-md'
+          ? 'bg-gradient-to-br from-[#370617] via-[#6A040F] to-[#9D0208] text-white border-transparent shadow-md'
           : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-xs'
       }`}
     >
@@ -22,13 +22,13 @@ export const TimetableCard: React.FC<TimetableCardProps> = ({ entry, onNavigate 
           <div className="flex items-center gap-2">
             <span
               className={`text-xs font-bold font-mono px-2 py-0.5 rounded-md ${
-                entry.isNext ? 'bg-white/20 text-white' : 'bg-slate-100 text-[#005F73]'
+                entry.isNext ? 'bg-white/20 text-[#FFBA08]' : 'bg-amber-100 text-[#9D0208]'
               }`}
             >
               {entry.courseCode}
             </span>
             {entry.isNext && (
-              <span className="text-[10px] uppercase font-bold bg-[#94D2BD] text-[#005F73] px-2 py-0.5 rounded-full tracking-wider animate-pulse">
+              <span className="text-[10px] uppercase font-bold bg-[#FFBA08] text-[#03071E] px-2 py-0.5 rounded-full tracking-wider animate-pulse">
                 NEXT CLASS
               </span>
             )}
@@ -39,7 +39,7 @@ export const TimetableCard: React.FC<TimetableCardProps> = ({ entry, onNavigate 
         </div>
 
         <div className="text-right shrink-0">
-          <div className={`flex items-center gap-1.5 text-xs font-semibold ${entry.isNext ? 'text-teal-100' : 'text-slate-600'}`}>
+          <div className={`flex items-center gap-1.5 text-xs font-semibold ${entry.isNext ? 'text-amber-100' : 'text-slate-600'}`}>
             <Clock className="w-3.5 h-3.5" />
             <span>{entry.startTime} - {entry.endTime}</span>
           </div>
@@ -48,18 +48,18 @@ export const TimetableCard: React.FC<TimetableCardProps> = ({ entry, onNavigate 
 
       <div className="mt-4 pt-3 border-t border-slate-200/20 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-4 text-xs">
-          <div className={`flex items-center gap-1.5 ${entry.isNext ? 'text-teal-50' : 'text-slate-600'}`}>
-            <MapPin className={`w-3.5 h-3.5 ${entry.isNext ? 'text-[#94D2BD]' : 'text-[#0A9396]'}`} />
+          <div className={`flex items-center gap-1.5 ${entry.isNext ? 'text-amber-100' : 'text-slate-600'}`}>
+            <MapPin className={`w-3.5 h-3.5 ${entry.isNext ? 'text-[#FFBA08]' : 'text-[#DC2F02]'}`} />
             <span className="font-bold">{entry.roomNumber}</span>
             <span className="opacity-80">({entry.buildingName})</span>
           </div>
 
-          <div className={`flex items-center gap-1.5 ${entry.isNext ? 'text-teal-100' : 'text-slate-500'}`}>
+          <div className={`flex items-center gap-1.5 ${entry.isNext ? 'text-amber-100' : 'text-slate-500'}`}>
             <User className="w-3.5 h-3.5 opacity-70" />
             <span>{entry.faculty}</span>
           </div>
 
-          <div className={`text-[11px] font-semibold ${entry.isNext ? 'text-[#94D2BD]' : 'text-slate-500'}`}>
+          <div className={`text-[11px] font-semibold ${entry.isNext ? 'text-[#FFBA08]' : 'text-slate-500'}`}>
             Walking time: {entry.walkingTimeMinutes} min
           </div>
         </div>

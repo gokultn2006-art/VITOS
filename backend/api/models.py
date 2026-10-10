@@ -124,18 +124,66 @@ class LostItem(models.Model):
         return f"[{self.type.upper()}] {self.title}"
 
 class DirectoryEntry(models.Model):
+    ENTRY_TYPE_CHOICES = [
+        ('group', 'Group'),
+        ('subgroup', 'Subgroup'),
+        ('entry', 'Entry')
+    ]
     name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=100, blank=True, null=True)
     category = models.CharField(max_length=100)
-    location_name = models.CharField(max_length=200)
-    building_code = models.CharField(max_length=20, blank=True, null=True)
+    subcategory = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(blank=True, default='')
+    
+    # Geographic location (for physical destinations)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    location_name = models.CharField(max_length=200, blank=True, default='')
+    building_code = models.CharField(max_length=50, blank=True, null=True)
+    building = models.CharField(max_length=150, blank=True, null=True)
+    floor = models.CharField(max_length=50, blank=True, null=True)
     room_number = models.CharField(max_length=50, blank=True, null=True)
-    description = models.TextField()
-    opening_hours = models.CharField(max_length=100)
-    contact = models.CharField(max_length=100, blank=True, null=True)
+    room = models.CharField(max_length=50, blank=True, null=True)
     location_id = models.CharField(max_length=50, blank=True, null=True)
 
+    # Contact & Access
+    phone = models.CharField(max_length=100, blank=True, null=True)
+    email = models.CharField(max_length=150, blank=True, null=True)
+    contact = models.CharField(max_length=150, blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
+    opening_hours = models.CharField(max_length=150, blank=True, default='')
+
+    # Hierarchy & Structure
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    entry_type = models.CharField(max_length=20, choices=ENTRY_TYPE_CHOICES, default='entry')
+    
+    # Metadata, Keywords & Services
+    aliases = models.JSONField(default=list, blank=True)
+    search_keywords = models.JSONField(default=list, blank=True)
+    services = models.JSONField(default=list, blank=True)
+    facilities = models.JSONField(default=list, blank=True)
+    icon_name = models.CharField(max_length=50, blank=True, null=True)
+
+    # Verification & Source
+    source_url = models.URLField(blank=True, null=True)
+    source_name = models.CharField(max_length=200, blank=True, null=True)
+    source_type = models.CharField(max_length=50, default='official_vit')
+    last_verified = models.CharField(max_length=50, blank=True, null=True)
+    osm_id = models.CharField(max_length=50, blank=True, null=True)
+    osm_type = models.CharField(max_length=20, blank=True, null=True)
+    osm_source_url = models.URLField(blank=True, null=True)
+    last_osm_sync = models.CharField(max_length=50, blank=True, null=True)
+    gender_target = models.CharField(max_length=20, blank=True, null=True)
+    facility_count = models.IntegerField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Directory Entry'
+        verbose_name_plural = 'Directory Entries'
+
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.category})"
 
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
@@ -195,3 +243,18 @@ class ClassroomAvailability(models.Model):
 
     def __str__(self):
         return f"{self.classroom} on {self.date} ({self.status})"
+
+class EmailVerificationOTP(models.Model):
+    email = models.EmailField(db_index=True)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_verified = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"OTP for {self.email} ({'Verified' if self.is_verified else 'Pending'})"
+

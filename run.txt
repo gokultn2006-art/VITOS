@@ -1,0 +1,171 @@
+# VIT CampusOS - how to run and understand the project
+
+## 1. Quickest One-Click Startup (Recommended)
+
+Simply double-click **`run.bat`** (or `start-local.bat`) in the root folder.
+This automatically sets up and starts both the Django backend (port 8000) and React frontend (port 5173) in separate windows and automatically opens your browser to `http://localhost:5173`.
+
+---
+
+## 2. Step-by-Step Manual Startup (Individual Parts)
+
+If running in separate PowerShell or Command Prompt terminals:
+
+### Terminal 1: Django backend
+
+From the repository root (`VITOS`):
+
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py seed_data
+python manage.py runserver 0.0.0.0:8000
+```
+
+Keep this terminal running. The backend is available at:
+
+- API: http://localhost:8000/api/
+- Django admin: http://localhost:8000/admin/
+
+If PowerShell blocks activation, run this once in the same PowerShell window or use the full Python path without activation:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+### Terminal 2: React/Vite frontend
+
+Open a second PowerShell terminal at the repository root:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173/ in the browser.
+
+To check the frontend before running it:
+
+```powershell
+npm run build
+npm run lint
+```
+
+### What happens during startup
+
+1. The Python virtual environment isolates backend packages.
+2. `pip install` installs Django, Django REST Framework, CORS support, Gemini support, HTTP utilities, and the database drivers.
+3. `migrate` creates or updates the SQLite schema from the migration files.
+4. `seed_data` inserts the sample users, campus data, rooms, timetable data, and directory/lost-found data. It is intended to be safe to run again.
+5. `runserver` starts Django on port 8000.
+6. `npm install` installs React, Vite, TypeScript, Leaflet, Axios, routing, icons, Tailwind, and lint/build tooling.
+7. `npm run dev` starts Vite on port 5173. Vite serves the React app and forwards `/api` calls to Django.
+
+## 2. Architecture: Lightweight & Native Local (No Docker / Kubernetes required)
+
+The system operates natively with zero container overhead:
+- **Backend**: Runs directly via Python/Django with local SQLite (`backend/db.sqlite3`).
+- **Frontend**: Runs directly via Vite dev server proxying `/api` to Django on port 8000.
+- **Launchers**: `start-local.bat` and `start-local.ps1` provide one-click concurrent startup.
+
+## 3. Project file guide
+
+### Root files
+
+- `README.md`: Product overview, feature list, visual palette, routes, and quick-start documentation.
+- `start-local.bat`: One-click Windows batch launcher for backend & frontend.
+- `start-local.ps1`: One-click PowerShell launcher for backend & frontend.
+- `run.txt`: This operational guide and file map.
+- `.gitignore`: Excludes virtual environments, databases, build output, caches, and local environment files from Git.
+
+### Backend entry points and configuration
+
+- `backend/manage.py`: Django command-line entry point. It runs commands such as `migrate`, `seed_data`, `test`, and `runserver`.
+- `backend/requirements.txt`: Python dependency list for Django, REST APIs, CORS, Gemini, HTTP requests, PostgreSQL, and Gunicorn.
+- `backend/db.sqlite3`: Existing local SQLite database file used by the current settings.
+- `backend/vitos_backend/__init__.py`: Marks the Django project package.
+- `backend/vitos_backend/settings.py`: Django settings: installed apps, middleware, SQLite connection, timezone, static settings, debug mode, allowed hosts, and CORS.
+- `backend/vitos_backend/urls.py`: Root URL router. It exposes Django admin and mounts the API under `/api/`.
+- `backend/vitos_backend/wsgi.py`: Creates the WSGI application for production servers such as Gunicorn.
+- `backend/api/__init__.py`: Marks the API package.
+- `backend/api/apps.py`: Django application metadata for the `api` app.
+- `backend/api/models.py`: Database models for profiles, buildings, rooms, locations, timetables, lost items, directory entries, notifications, and navigation data.
+- `backend/api/serializers.py`: Converts model objects to/from REST JSON and defines the API representation of nested and related data.
+- `backend/api/urls.py`: Maps API paths to authentication, timetable, profile-photo, navigation, classroom, assistant, admin-review, and CRUD endpoints.
+- `backend/api/views.py`: Implements the API behavior: login/register, profile photos, timetable import/export and registration, next-class lookup, navigation, classroom review, assistant responses, and model CRUD operations.
+
+### Backend services, data, and tests
+
+- `backend/api/services/navigation_service.py`: Builds the campus navigation graph and calculates shortest walkable routes with Dijkstra's algorithm.
+- `backend/api/services/next_class_service.py`: Finds the current or next class and calculates its day, time, venue, and countdown information.
+- `backend/api/services/ffcs_slot_service.py`: Stores the official FFCS theory/lab slot rules, parses combinations, validates Wednesday extramural slots, and detects clashes.
+- `backend/api/services/notification_service.py`: Creates deduplicated upcoming-class and venue-reminder notifications.
+- `backend/api/management/commands/seed_data.py`: Custom `seed_data` command that inserts repeatable sample users and campus records.
+- `backend/api/migrations/__init__.py`: Marks the migrations package.
+- `backend/api/migrations/0001_initial.py`: Creates the original campus, room, directory, lost-item, notification, and legacy timetable tables.
+- `backend/api/migrations/0002_lostitem_user_notification_user_and_more.py`: Adds user relationships, timetable session/slot fields, and student profiles.
+- `backend/api/migrations/0003_campusnode_notification_occurrence_identifier_and_more.py`: Adds navigation nodes/paths, classroom availability, registered timetables, notification deduplication, and profile photos.
+- `backend/api/tests/__init__.py`: Marks the tests package.
+- `backend/api/tests/test_enhancements.py`: Tests registered timetable versions, next-class behavior, notifications, photo validation, navigation, and admin permissions.
+- `backend/api/tests/test_timetable.py`: Tests FFCS parsing, clash detection, timetable JSON import/export, and invalid slots.
+
+### Frontend configuration and entry points
+
+- `frontend/package.json`: Frontend scripts (`dev`, `build`, `lint`, `preview`) and npm dependencies.
+- `frontend/vite.config.ts`: Enables React and Tailwind plugins, sets port 5173, and proxies `/api` to `http://localhost:8000`.
+- `frontend/tsconfig.json`: References the browser/app and Node/Vite TypeScript configurations.
+- `frontend/tsconfig.app.json`: Strict TypeScript settings for browser application code; the build does not emit JavaScript here.
+- `frontend/tsconfig.node.json`: TypeScript settings for Vite configuration files.
+- `frontend/index.html`: Vite HTML shell with the root element and the `src/main.tsx` entry script.
+- `frontend/src/main.tsx`: Mounts the React `App` inside React `StrictMode`.
+- `frontend/src/App.tsx`: Creates authentication, routing, protected routes, admin authorization, sidebar/navbar layout, and all application URLs.
+- `frontend/src/index.css`: Imports Tailwind and Leaflet CSS and defines global typography, colors, map popups, and scrollbar styles.
+
+### Frontend data and logic
+
+- `frontend/src/types/index.ts`: Shared TypeScript types for users, locations, rooms, timetable entries, notifications, lost items, and chat messages.
+- `frontend/src/data/mockData.ts`: Demo users and fallback data for locations, rooms, timetable, directory, notifications, assistant prompts, and VTOP text.
+- `frontend/src/services/api.ts`: Axios API client. It sends the local bearer token, calls Django endpoints, and falls back to mock data when requests fail; it does not call Gemini directly.
+- `frontend/src/context/AuthContext.tsx`: Stores the user/token in local storage and exposes login, registration, logout, loading, and authentication state.
+- `frontend/src/utils/geolocation.ts`: Calculates Haversine distance, walking time, and leave-by times.
+- `frontend/src/utils/vitParser.ts`: Parses copied VTOP timetable text into courses and grid cells.
+- `frontend/src/utils/vitSlotMaster.ts`: Frontend FFCS slot/time registry and weekday/lab/theory mappings.
+
+### Shared frontend components
+
+- `frontend/src/components/Button.tsx`: Reusable button variants and sizes.
+- `frontend/src/components/Card.tsx`: Reusable bordered card container.
+- `frontend/src/components/ChatMessage.tsx`: Renders assistant/user messages, suggested locations, and quick actions.
+- `frontend/src/components/ClassroomCard.tsx`: Displays classroom status, capacity, facilities, and navigation.
+- `frontend/src/components/EmptyState.tsx`: Displays an empty result with an optional action.
+- `frontend/src/components/LoadingState.tsx`: Displays a loading spinner and message.
+- `frontend/src/components/LocationCard.tsx`: Displays location details and save/navigate actions.
+- `frontend/src/components/LostItemCard.tsx`: Displays lost/found item information and a map action.
+- `frontend/src/components/Modal.tsx`: Reusable dialog that closes with Escape and locks page scrolling.
+- `frontend/src/components/Navbar.tsx`: Provides search autocomplete, assistant shortcut, notification popover, and profile link.
+- `frontend/src/components/NotificationCard.tsx`: Displays a notification and its mark-read action.
+- `frontend/src/components/Sidebar.tsx`: Responsive navigation menu, including the admin link for authorized users.
+- `frontend/src/components/TimetableCard.tsx`: Displays a timetable entry and its navigation action.
+
+### Frontend pages
+
+- `frontend/src/pages/LoginPage.tsx`: Login form, demo account selectors, and password-reset placeholder.
+- `frontend/src/pages/RegisterPage.tsx`: Student registration form with client-side password checks.
+- `frontend/src/pages/DashboardPage.tsx`: Main student dashboard with greeting, GPS, timetable parsing, next class, walking estimates, services, and notifications.
+- `frontend/src/pages/MapPage.tsx`: Leaflet campus map with markers, GPS tracking, search/filtering, and backend route drawing.
+- `frontend/src/pages/AssistantPage.tsx`: Chat interface with suggested questions, quick actions, backend assistant call, and fallback responses.
+- `frontend/src/pages/TimetablePage.tsx`: Per-user VTOP import in local storage, timetable grid, clash indicators, and reset.
+- `frontend/src/pages/ClassroomPage.tsx`: Classroom search, filtering, distance sorting, and navigation using demo data.
+- `frontend/src/pages/LostFoundPage.tsx`: Lost/found list, filters, and report modal using API data with fallback data.
+- `frontend/src/pages/DirectoryPage.tsx`: Directory search/category filters, distance sorting, and navigation.
+- `frontend/src/pages/ProfilePage.tsx`: Profile card, saved places, logout, and database-backed photo upload.
+- `frontend/src/pages/AdminPage.tsx`: Classroom availability review through the API; other administration tables currently use mock data.
+
+### Frontend assets and public files
+
+- `frontend/public/favicon.svg`: Browser tab icon.
+- `frontend/README.md`: Default Vite/React template notes; the root `README.md` and this file contain the project-specific instructions.

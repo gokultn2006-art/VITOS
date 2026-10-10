@@ -1,5 +1,9 @@
 import os
-from datetime import datetime, date
+import random
+import logging
+import json
+import base64
+from datetime import datetime, date, timedelta
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,11 +11,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.db import transaction
 from django.http import HttpResponse
+from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .models import (
     StudentProfile, Building, Room, CampusLocation, Timetable, LostItem,
     DirectoryEntry, Notification, StudentTimetable, TimetableClass,
-    CampusNode, CampusPath, ClassroomAvailability
+    CampusNode, CampusPath, ClassroomAvailability, EmailVerificationOTP
 )
 from .serializers import (
     UserSerializer, StudentProfileSerializer, BuildingSerializer, RoomSerializer,
@@ -24,6 +31,11 @@ from .services.ffcs_slot_service import FFCSSlotParser, TimetableConflictService
 from .services.next_class_service import NextClassService
 from .services.navigation_service import NavigationService
 from .services.notification_service import NotificationService
+from .services.assistant_service import CampusAiAssistantService
+from .services.slot_class_service import SlotClassService
+import re
+
+logger = logging.getLogger(__name__)
 
 def get_request_user(request):
     auth_header = request.headers.get('Authorization', '')
@@ -37,22 +49,262 @@ def get_request_user(request):
                 pass
     return User.objects.filter(username='22BCE1024').first() or User.objects.first()
 
+class SendOtpView(APIView):
+    def post(self, request):
+        email = (request.data.get('email') or '').strip().lower()
+        if not email:
+            return Response({'error': 'Email address is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not email.endswith('@vitstudent.ac.in'):
+            return Response({
+                'error': 'Registration is strictly restricted to official VIT student emails ending with @vitstudent.ac.in.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email__iexact=email).exists():
+            return Response({
+                'error': 'An account with this email address already exists. Please sign in instead.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate secure 6-digit numeric OTP
+        otp_code = f"{random.randint(100000, 999999)}"
+        expires_at = timezone.now() + timedelta(minutes=10)
+
+        # Clear any prior unverified OTPs for this email
+        EmailVerificationOTP.objects.filter(email__iexact=email).delete()
+        EmailVerificationOTP.objects.create(
+            email=email,
+            otp=otp_code,
+            expires_at=expires_at,
+            is_verified=False
+        )
+
+        subject = "VIT Vellore - Student Account Verification Code"
+        message = (
+            f"Dear Student,\n\n"
+            f"Your verification code for registering your VIT student account is:\n\n"
+            f"    {otp_code}\n\n"
+            f"This code will expire in 10 minutes.\n"
+            f"If you did not request this verification code, please ignore this email.\n\n"
+            f"Regards,\n"
+            f"VIT Vellore Campus System"
+        )
+
+        # Dynamically reload credentials from backend/.env if needed
+        env_file = settings.BASE_DIR / '.env'
+        if env_file.exists():
+            try:
+                with open(env_file, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#') and '=' in line:
+                            k, v = line.split('=', 1)
+                            os.environ[k.strip()] = v.strip().strip('"').strip("'")
+            except Exception:
+                pass
+
+        host_user = (os.environ.get('EMAIL_HOST_USER') or getattr(settings, 'EMAIL_HOST_USER', '')).strip()
+        host_password = (os.environ.get('EMAIL_HOST_PASSWORD') or getattr(settings, 'EMAIL_HOST_PASSWORD', '')).strip().replace(' ', '')
+
+        if not host_user or not host_password:
+            return Response({
+                'error': (
+                    'Real email delivery is not yet configured. '
+                    'To dispatch OTP emails to @vitstudent.ac.in, please provide EMAIL_HOST_USER '
+                    'and a 16-character Google App Password in backend/.env.'
+                )
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        try:
+            from django.core.mail.backends.smtp import EmailBackend
+            from django.core.mail import EmailMessage
+
+            backend = EmailBackend(
+                host='smtp.gmail.com',
+                port=587,
+                username=host_user,
+                password=host_password,
+                use_tls=True,
+                fail_silently=False,
+                timeout=15,
+            )
+            email_msg = EmailMessage(
+                subject=subject,
+                body=message,
+                from_email=f'VIT Vellore Admissions <{host_user}>',
+                to=[email],
+                connection=backend
+            )
+            email_msg.send(fail_silently=False)
+        except Exception as e:
+            logger.error(f"send_mail failed for {email}: {e}")
+            return Response({
+                'error': f'Failed to dispatch email via Gmail SMTP: {str(e)}. Please check your credentials in backend/.env.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({
+            'message': f"A 6-digit verification code has been dispatched to {email}. Please check your inbox and spam folder.",
+            'email': email,
+            'expires_in_seconds': 600
+        }, status=status.HTTP_200_OK)
+
+class VerifyOtpView(APIView):
+    def post(self, request):
+        email = (request.data.get('email') or '').strip().lower()
+        otp = (request.data.get('otp') or '').strip()
+
+        if not email or not otp:
+            return Response({'error': 'Email address and verification code are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        record = EmailVerificationOTP.objects.filter(email__iexact=email, is_verified=False).order_by('-created_at').first()
+        if not record:
+            return Response({
+                'error': 'No pending verification code found for this email. Please click "Send Code" to request one.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if record.expires_at < timezone.now():
+            return Response({
+                'error': 'Verification code has expired. Please request a new code.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if record.attempts >= 5:
+            return Response({
+                'error': 'Too many failed verification attempts. Please request a new code.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if record.otp != otp:
+            record.attempts += 1
+            record.save()
+            return Response({
+                'error': 'Invalid verification code. Please check the 6-digit code sent to your email.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        record.is_verified = True
+        record.save()
+
+        return Response({
+            'message': 'Email address successfully verified!',
+            'verified': True,
+            'email': email
+        }, status=status.HTTP_200_OK)
+
+class GoogleAuthView(APIView):
+    def post(self, request):
+        data = request.data
+        email = (data.get('email') or '').strip().lower()
+        name = (data.get('name') or data.get('fullName') or '').strip()
+        picture = data.get('picture') or data.get('avatarUrl') or ''
+        credential = data.get('credential')
+
+        # If credential JWT was sent, decode payload
+        if credential and not email:
+            try:
+                parts = credential.split('.')
+                if len(parts) >= 2:
+                    padding = '=' * (-len(parts[1]) % 4)
+                    payload_json = base64.urlsafe_b64decode(parts[1] + padding).decode('utf-8')
+                    payload = json.loads(payload_json)
+                    email = (payload.get('email') or '').strip().lower()
+                    name = payload.get('name', name)
+                    picture = payload.get('picture', picture)
+            except Exception as e:
+                logger.warning(f"Failed to decode Google credential: {e}")
+
+        if not email:
+            return Response({'error': 'Google account email could not be retrieved.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # STRICT VERIFICATION: MUST BE @vitstudent.ac.in
+        if not email.endswith('@vitstudent.ac.in'):
+            return Response({
+                'error': f'Access restricted: {email} is not a valid @vitstudent.ac.in Google account. Only official VIT student accounts are permitted.'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # Check existing user
+        user = User.objects.filter(email__iexact=email).first()
+        is_new = False
+        if not user:
+            # Auto-provision student account for verified Google user
+            is_new = True
+            reg_match = re.search(r'([0-9]{2}[A-Za-z]{3}[0-9]{4})', email)
+            reg_no = reg_match.group(1).upper() if reg_match else email.split('@')[0].upper()
+            username = reg_no
+
+            if User.objects.filter(username__iexact=username).exists() or StudentProfile.objects.filter(reg_no__iexact=reg_no).exists():
+                username = f"{email.split('@')[0]}_{os.urandom(2).hex()}"
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=os.urandom(16).hex(),
+                first_name=name.split()[0] if name else '',
+                last_name=' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''
+            )
+
+            StudentProfile.objects.create(
+                user=user,
+                full_name=name or email.split('@')[0],
+                reg_no=reg_no,
+                programme='',
+                year_semester='',
+                avatar_url=picture or '/default-avatar.png',
+                saved_locations=['TT', 'LIB', 'MED'],
+                recent_searches=['TT-624', 'Periyar Library', 'Medical Centre']
+            )
+        else:
+            prof = getattr(user, 'profile', None)
+            if not prof or not prof.programme or not prof.year_semester:
+                is_new = True
+
+        serializer = UserSerializer(user)
+        return Response({
+            'token': f"vitos_token_{user.id}_{os.urandom(4).hex()}",
+            'user': serializer.data,
+            'is_new_user': is_new,
+            'needs_profile_completion': is_new,
+            'message': 'Successfully authenticated with Google VIT student account.'
+        }, status=status.HTTP_200_OK)
+
 class RegisterView(APIView):
     def post(self, request):
         data = request.data
-        username = data.get('reg_no') or data.get('email')
-        email = data.get('email')
+        email = (data.get('email') or '').strip().lower()
         password = data.get('password')
-        full_name = data.get('full_name')
-        reg_no = data.get('reg_no')
+        full_name = (data.get('full_name') or '').strip()
+        reg_no = (data.get('reg_no') or '').strip().upper()
         programme = data.get('programme', 'B.Tech Computer Science and Engineering')
         year_semester = data.get('year_semester', '3rd Year (Semester VI)')
 
-        if not username or not password or not reg_no:
-            return Response({'error': 'Registration number, email, and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not email or not password:
+            return Response({'error': 'Email address and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if User.objects.filter(username=username).exists() or StudentProfile.objects.filter(reg_no=reg_no).exists():
-            return Response({'error': 'An account with this registration number or email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not email.endswith('@vitstudent.ac.in'):
+            return Response({'error': 'Registration is restricted to official VIT student emails ending with @vitstudent.ac.in.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # STRICT OTP VERIFICATION CHECK
+        verified_record = EmailVerificationOTP.objects.filter(
+            email__iexact=email,
+            is_verified=True,
+            created_at__gte=timezone.now() - timedelta(hours=2)
+        ).first()
+
+        if not verified_record:
+            return Response({
+                'error': 'Email address has not been verified. Please send and verify the OTP code sent to your @vitstudent.ac.in address first.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Derive reg_no from email or input if not supplied
+        if not reg_no:
+            reg_match = re.search(r'([0-9]{2}[A-Za-z]{3}[0-9]{4})', email)
+            reg_no = reg_match.group(1).upper() if reg_match else email.split('@')[0].upper()
+
+        username = reg_no
+
+        if User.objects.filter(email__iexact=email).exists():
+            return Response({'error': 'An account with this email address already exists. Please sign in instead.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username__iexact=username).exists() or StudentProfile.objects.filter(reg_no__iexact=reg_no).exists():
+            username = email.split('@')[0]
+            if User.objects.filter(username__iexact=username).exists():
+                username = f"{username}_{os.urandom(2).hex()}"
 
         user = User.objects.create_user(
             username=username,
@@ -64,7 +316,7 @@ class RegisterView(APIView):
 
         profile = StudentProfile.objects.create(
             user=user,
-            full_name=full_name or reg_no,
+            full_name=full_name or email.split('@')[0],
             reg_no=reg_no,
             programme=programme,
             year_semester=year_semester,
@@ -72,35 +324,46 @@ class RegisterView(APIView):
             recent_searches=['TT-624', 'Periyar Library', 'Medical Centre']
         )
 
+        # Clean up verified OTP record after registration
+        EmailVerificationOTP.objects.filter(email__iexact=email).delete()
+
         serializer = UserSerializer(user)
         return Response({
             'token': f"vitos_token_{user.id}_{os.urandom(4).hex()}",
             'user': serializer.data
         }, status=status.HTTP_201_CREATED)
 
+
 class LoginView(APIView):
     def post(self, request):
-        identifier = request.data.get('identifier') or request.data.get('email') or request.data.get('reg_no')
+        identifier = (request.data.get('identifier') or request.data.get('email') or request.data.get('reg_no') or '').strip()
         password = request.data.get('password')
 
         if not identifier or not password:
-            return Response({'error': 'Please provide registration number/email and password.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Please provide email and password.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = authenticate(username=identifier, password=password)
-        if not user:
-            try:
-                if '@' in identifier:
-                    u = User.objects.get(email=identifier)
-                else:
-                    prof = StudentProfile.objects.get(reg_no=identifier)
-                    u = prof.user
-                if u.check_password(password):
+        user = None
+        # 1. Try direct case-insensitive email lookup
+        if '@' in identifier:
+            u = User.objects.filter(email__iexact=identifier).first()
+            if u and u.check_password(password):
+                user = u
+        else:
+            # 2. Try reg_no lookup
+            prof = StudentProfile.objects.filter(reg_no__iexact=identifier).first()
+            if prof and prof.user and prof.user.check_password(password):
+                user = prof.user
+            else:
+                u = User.objects.filter(username__iexact=identifier).first()
+                if u and u.check_password(password):
                     user = u
-            except Exception:
-                pass
+
+        # 3. Fallback standard Django auth
+        if not user:
+            user = authenticate(username=identifier, password=password)
 
         if not user:
-            return Response({'error': 'Invalid credentials. Please check your Registration Number and Password.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Invalid email or password. Please verify your credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = UserSerializer(user)
         return Response({
@@ -247,13 +510,38 @@ class ProfilePhotoView(APIView):
 
 class CampusNavigateView(APIView):
     def post(self, request):
-        source = request.data.get('source', 'MENS_HOSTEL')
-        destination = request.data.get('destination', 'SJT')
+        source = request.data.get('source', '')
+        destination = request.data.get('destination', '')
+        from_lat = request.data.get('from_lat')
+        from_lng = request.data.get('from_lng')
+        to_lat = request.data.get('to_lat')
+        to_lng = request.data.get('to_lng')
+        mode = request.data.get('mode', 'walking')
 
-        if not source or not destination:
-            return Response({'error': 'Both source and destination campus nodes are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Convert coordinates if provided as strings or numbers
+        try:
+            from_lat = float(from_lat) if from_lat is not None else None
+            from_lng = float(from_lng) if from_lng is not None else None
+            to_lat = float(to_lat) if to_lat is not None else None
+            to_lng = float(to_lng) if to_lng is not None else None
+        except (ValueError, TypeError):
+            from_lat = from_lng = to_lat = to_lng = None
 
-        route_data = NavigationService.calculate_route(source, destination)
+        has_codes = bool(source and destination)
+        has_coords = bool(from_lat is not None and from_lng is not None and to_lat is not None and to_lng is not None)
+
+        if not has_codes and not has_coords and not source and not destination:
+            return Response({'error': 'Either source and destination codes or valid coordinate pairs (from_lat/lng, to_lat/lng) are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        route_data = NavigationService.calculate_route(
+            source_code=source,
+            destination_code=destination,
+            from_lat=from_lat,
+            from_lng=from_lng,
+            to_lat=to_lat,
+            to_lng=to_lng,
+            mode=mode
+        )
         if 'error' in route_data:
             return Response(route_data, status=status.HTTP_400_BAD_REQUEST)
 
@@ -370,13 +658,54 @@ class TimetableViewSet(viewsets.ModelViewSet):
     queryset = Timetable.objects.all()
     serializer_class = TimetableSerializer
 
+    def get_queryset(self):
+        user = get_request_user(self.request)
+        if user:
+            return Timetable.objects.filter(student=user)
+        return Timetable.objects.none()
+
+    def perform_create(self, serializer):
+        user = get_request_user(self.request)
+        serializer.save(student=user)
+
 class LostItemViewSet(viewsets.ModelViewSet):
     queryset = LostItem.objects.all()
     serializer_class = LostItemSerializer
 
 class DirectoryEntryViewSet(viewsets.ModelViewSet):
-    queryset = DirectoryEntry.objects.all()
+    queryset = DirectoryEntry.objects.filter(is_active=True)
     serializer_class = DirectoryEntrySerializer
+
+    def get_queryset(self):
+        qs = DirectoryEntry.objects.filter(is_active=True)
+        category = self.request.query_params.get('category')
+        parent_id = self.request.query_params.get('parent')
+        entry_type = self.request.query_params.get('type')
+        search = self.request.query_params.get('search')
+
+        if category and category != 'all':
+            qs = qs.filter(category__iexact=category)
+        if parent_id is not None:
+            if parent_id in ['null', 'none', '']:
+                qs = qs.filter(parent__isnull=True)
+            else:
+                qs = qs.filter(parent_id=parent_id)
+        if entry_type:
+            qs = qs.filter(entry_type=entry_type)
+        if search:
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(name__icontains=search) |
+                Q(short_name__icontains=search) |
+                Q(description__icontains=search) |
+                Q(location_name__icontains=search) |
+                Q(category__icontains=search) |
+                Q(subcategory__icontains=search) |
+                Q(building__icontains=search) |
+                Q(search_keywords__icontains=search) |
+                Q(aliases__icontains=search)
+            )
+        return qs
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
@@ -391,7 +720,132 @@ class AvailableClassroomsView(APIView):
 class AiAssistantChatView(APIView):
     def post(self, request):
         message = request.data.get('message', '')
+        response_data = CampusAiAssistantService.answer_query(message)
+        return Response(response_data)
+
+class AiAssistantStatusView(APIView):
+    def get(self, request):
+        return Response(CampusAiAssistantService.get_status())
+
+class AiAssistantConfigureView(APIView):
+    def post(self, request):
+        api_key = request.data.get('api_key', '')
+        if not api_key:
+            return Response({'error': 'API key is required'}, status=status.HTTP_400_BAD_REQUEST)
+        CampusAiAssistantService.set_api_key(api_key)
+        return Response(CampusAiAssistantService.get_status())
+
+class AdminUsersView(APIView):
+    def get(self, request):
+        users = User.objects.all().select_related('profile').order_by('-date_joined')
+        data = []
+        for u in users:
+            prof = getattr(u, 'profile', None)
+            data.append({
+                'id': u.id,
+                'username': u.username,
+                'email': u.email,
+                'fullName': (prof.full_name if prof else '') or f"{u.first_name} {u.last_name}".strip() or u.username,
+                'regNo': (prof.reg_no if prof else '') or u.username,
+                'programme': (prof.programme if prof else '') or ('System Administrator' if u.is_staff else 'B.Tech Computer Science and Engineering'),
+                'yearSemester': (prof.year_semester if prof else '') or ('Staff / Admin' if u.is_staff else '3rd Year (Semester VI)'),
+                'isStaff': u.is_staff or u.is_superuser,
+                'role': 'admin' if (u.is_staff or u.is_superuser) else 'student',
+                'dateJoined': u.date_joined.strftime('%Y-%m-%d %H:%M') if u.date_joined else '2026-10-07',
+                'avatarUrl': (prof.avatar_url if prof else '') or 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'
+            })
+        return Response(data)
+
+class AdminSlotClassesView(APIView):
+    def get(self, request):
+        slot = request.query_params.get('slot', 'A1')
+        result = SlotClassService.get_classes_for_slot(slot)
+        return Response(result)
+
+class AdminSlotListView(APIView):
+    def get(self, request):
+        slots = SlotClassService.get_available_slots()
+        return Response(slots)
+
+class AdminUserDetailView(APIView):
+    def delete(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            if user.username == 'admin' or user.email == 'admin@vitstudent.ac.in':
+                return Response({'error': 'Cannot delete master administrator account.'}, status=status.HTTP_400_BAD_REQUEST)
+            full_name = getattr(getattr(user, 'profile', None), 'full_name', '') or user.username
+            user.delete()
+            return Response({'message': f'User {full_name} deleted successfully.'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class ProfileUpdateView(APIView):
+    def patch(self, request):
+        user = get_request_user(request)
+        if not user:
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        data = request.data
+        full_name = data.get('name') or data.get('fullName') or data.get('full_name')
+        if full_name:
+            names = full_name.strip().split()
+            user.first_name = names[0]
+            user.last_name = " ".join(names[1:]) if len(names) > 1 else ""
+            user.save()
+
+        profile = getattr(user, 'profile', None)
+        if not profile:
+            profile = StudentProfile.objects.create(
+                user=user,
+                full_name=full_name or user.username,
+                reg_no=user.username,
+                programme='B.Tech Computer Science and Engineering',
+                year_semester='3rd Year (Semester VI)'
+            )
+        else:
+            if full_name:
+                profile.full_name = full_name.strip()
+            if 'regNo' in data or 'reg_no' in data:
+                new_reg = (data.get('regNo') or data.get('reg_no')).strip().upper()
+                if new_reg:
+                    profile.reg_no = new_reg
+                    user.username = new_reg
+                    user.save()
+            if 'program' in data or 'programme' in data:
+                profile.programme = data.get('program') or data.get('programme')
+            if 'year' in data or 'yearSemester' in data or 'year_semester' in data:
+                profile.year_semester = data.get('year') or data.get('yearSemester') or data.get('year_semester')
+            if 'avatar' in data or 'avatarUrl' in data or 'avatar_url' in data:
+                profile.avatar_url = data.get('avatar') or data.get('avatarUrl') or data.get('avatar_url')
+            if 'savedLocationIds' in data or 'saved_locations' in data:
+                profile.saved_locations = data.get('savedLocationIds') or data.get('saved_locations')
+            profile.save()
+
+        serializer = UserSerializer(user)
         return Response({
-            'reply': f"VIT CampusOS Assistant: Answer for '{message}'. Navigation, timetables, and classroom tools are ready.",
-            'timestamp': 'Just now'
-        })
+            'message': 'Profile updated successfully.',
+            'user': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        return self.patch(request)
+
+
+class DeleteAccountView(APIView):
+    def delete(self, request):
+        user = get_request_user(request)
+        if not user:
+            return Response({'error': 'Unauthorized. Please log in first.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Strict protection: Administrator accounts cannot be deleted
+        if user.username == 'admin' or user.email == 'admin@vitstudent.ac.in' or getattr(user, 'is_staff', False):
+            return Response({'error': 'Administrator accounts cannot be deleted.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        full_name = getattr(getattr(user, 'profile', None), 'full_name', '') or user.username
+        user.delete()
+        return Response({'message': f'Student account for {full_name} has been permanently deleted.'}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        return self.delete(request)
+
+

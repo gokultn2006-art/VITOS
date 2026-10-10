@@ -69,17 +69,87 @@ export interface LostItem {
 }
 
 export interface DirectoryEntry {
-  id: string;
+  id: string | number;
   name: string;
+  short_name?: string;
   category: string;
-  locationName: string;
+  subcategory?: string;
+  location_name?: string;
+  locationName?: string;
+  building_code?: string;
   buildingCode?: string;
+  building?: string;
+  floor?: string;
+  room_number?: string;
   roomNumber?: string;
+  room?: string;
   description: string;
-  openingHours: string;
+  opening_hours?: string;
+  openingHours?: string;
   contact?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  icon_name?: string;
   iconName?: string;
+  location_id?: string;
   locationId?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  parent?: number | string | null;
+  parent_name?: string;
+  entry_type?: 'group' | 'subgroup' | 'entry';
+  children_count?: number;
+  has_coordinates?: boolean;
+  aliases?: string[];
+  search_keywords?: string[];
+  services?: string[];
+  facilities?: string[];
+  source_url?: string;
+  source_name?: string;
+  last_verified?: string;
+  osm_id?: string;
+  osm_type?: string;
+  osm_source_url?: string;
+  last_osm_sync?: string;
+  source_type?: string;
+  gender_target?: 'Men' | 'Women' | 'Both' | string;
+  facility_count?: number;
+}
+
+export interface NavigationPoint {
+  type: 'current' | 'directory' | 'custom' | 'pin';
+  id?: string | number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  locationName?: string;
+}
+
+export interface NavigationState {
+  origin: NavigationPoint | null;
+  destination: NavigationPoint | null;
+  mode: 'walking' | 'driving';
+}
+
+export interface NavigationStep {
+  instruction: string;
+  distanceMeters: number;
+  durationSeconds?: number;
+  type?: string;
+  modifier?: string;
+}
+
+export interface NavigationRouteResult {
+  source: string;
+  destination: string;
+  distanceMeters: number;
+  estimatedMinutes: number;
+  mode: 'walking' | 'driving';
+  engine: 'osrm-osm' | 'campus-dijkstra' | 'direct';
+  coordinates: [number, number][];
+  steps: NavigationStep[];
+  path?: string[];
 }
 
 export interface NotificationItem {
@@ -105,12 +175,25 @@ export interface User {
   role: 'student' | 'admin';
 }
 
+export interface ChatSuggestedLocation {
+  id: string | number;
+  name: string;
+  category?: string;
+  code?: string;
+  building?: string;
+  location_name?: string;
+  latitude?: number;
+  longitude?: number;
+  lat?: number;
+  lng?: number;
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
   text: string;
   timestamp: string;
-  suggestedLocations?: CampusLocation[];
+  suggestedLocations?: (CampusLocation | ChatSuggestedLocation)[];
   quickActions?: {
     label: string;
     action: string;

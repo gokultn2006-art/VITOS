@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Compass, User, ArrowRight, ShieldCheck, Eye, EyeOff, AlertCircle, HelpCircle } from 'lucide-react';
+import { Compass, Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, HelpCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
+import { GoogleAuthButton } from '../components/GoogleAuthButton';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [role, setRole] = useState<'student' | 'admin'>('student');
-  const [identifier, setIdentifier] = useState('22BCE1024');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('admin@vitstudent.ac.in');
+  const [password, setPassword] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -23,77 +23,41 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(identifier, password);
+      const cleanEmail = email.trim();
+      const success = await login(cleanEmail, password);
       if (success) {
-        if (role === 'admin' || identifier.includes('admin')) {
+        // Retrieve logged in user profile from storage
+        const userStr = localStorage.getItem('vitos_user');
+        const loggedUser = userStr ? JSON.parse(userStr) : null;
+        if (loggedUser?.role === 'admin' || cleanEmail.toLowerCase().startsWith('admin')) {
           navigate('/admin');
         } else {
           navigate('/dashboard');
         }
       } else {
-        setErrorMsg('Invalid registration number or password. Please try again.');
+        setErrorMsg('Invalid email or password. Please verify your credentials.');
       }
     } catch {
-      setErrorMsg('Login failed. Please check your credentials.');
+      setErrorMsg('Login failed. Please check your network connection.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleQuickDemoUser = (reg: string, pass: string, isStaff = false) => {
-    setIdentifier(reg);
-    setPassword(pass);
-    setRole(isStaff ? 'admin' : 'student');
-  };
-
   return (
-    <div className="min-h-screen bg-slate-100/70 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200/80 shadow-xl overflow-hidden">
+    <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-3xl border border-stone-200/80 shadow-xl overflow-hidden">
         {/* Header Banner */}
-        <div className="bg-[#005F73] p-8 text-center text-white relative">
-          <div className="w-12 h-12 rounded-2xl bg-[#0A9396] flex items-center justify-center mx-auto mb-3 shadow-md">
-            <Compass className="w-7 h-7 text-white animate-spin-slow" />
+        <div className="bg-gradient-to-r from-[#370617] via-[#6A040F] to-[#9D0208] p-8 text-center text-white relative">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#9D0208] to-[#DC2F02] border border-amber-300/40 flex items-center justify-center mx-auto mb-3 shadow-md">
+            <Compass className="w-7 h-7 text-[#FFBA08] animate-spin-slow" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">VIT CampusOS</h1>
-          <p className="text-xs text-[#94D2BD] mt-1 font-medium">Smart Navigation & Campus Assistance Engine</p>
+          <p className="text-xs text-[#FFBA08] mt-1 font-medium">Smart Navigation & Campus Assistance Engine</p>
         </div>
 
         {/* Content Body */}
         <div className="p-8 space-y-4">
-          {/* Role Toggle */}
-          <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
-            <button
-              type="button"
-              onClick={() => {
-                setRole('student');
-                setIdentifier('22BCE1024');
-              }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                role === 'student'
-                  ? 'bg-white text-[#005F73] shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <User className="w-3.5 h-3.5" />
-              Student Portal
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setRole('admin');
-                setIdentifier('admin.campusos@vit.ac.in');
-              }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                role === 'admin'
-                  ? 'bg-white text-[#005F73] shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Admin Portal
-            </button>
-          </div>
-
           {errorMsg && (
             <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-in fade-in">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -101,45 +65,73 @@ export const LoginPage: React.FC = () => {
             </div>
           )}
 
+          {/* Google Direct Sign-In */}
+          <GoogleAuthButton
+            label="Sign in with Google (@vitstudent.ac.in)"
+            onSuccess={(isNewUser) => {
+              if (isNewUser) {
+                navigate('/complete-profile');
+              } else {
+                navigate('/dashboard');
+              }
+            }}
+            onError={(msg) => setErrorMsg(msg)}
+          />
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-stone-200"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-3 bg-white text-stone-400 font-semibold uppercase tracking-wider text-[10px]">
+                or sign in with student email
+              </span>
+            </div>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                {role === 'student' ? 'VIT Registration Number / Email' : 'Staff Admin Email'}
+              <label className="block text-xs font-bold text-stone-700 mb-1">
+                Email Address
               </label>
-              <input
-                type="text"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                required
-                placeholder={role === 'student' ? 'e.g. 22BCE1024' : 'admin.campusos@vit.ac.in'}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#005F73] focus:bg-white"
-              />
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-3 w-4 h-4 text-stone-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="yourname@vitstudent.ac.in"
+                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#9D0208] focus:border-[#9D0208] focus:bg-white"
+                />
+              </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-bold text-slate-700">Password</label>
+                <label className="block text-xs font-bold text-stone-700">Password</label>
                 <button
                   type="button"
                   onClick={() => setIsForgotModalOpen(true)}
-                  className="text-[11px] font-semibold text-[#005F73] hover:underline"
+                  className="text-[11px] font-semibold text-[#9D0208] hover:text-[#DC2F02] hover:underline"
                 >
-                  Forgot password?
+                  Forgot Password?
                 </button>
               </div>
               <div className="relative">
+                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-stone-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••••••"
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#005F73] focus:bg-white pr-10"
+                  className="w-full pl-10 pr-10 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#9D0208] focus:border-[#9D0208] focus:bg-white"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3.5 top-3 text-stone-400 hover:text-stone-600"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -153,44 +145,14 @@ export const LoginPage: React.FC = () => {
               disabled={isLoading}
               icon={isLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             >
-              {isLoading ? 'Signing In...' : 'Sign In to CampusOS'}
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
 
-          {/* Quick Demo Sign In for 3 Multi-User Accounts */}
-          <div className="mt-6 pt-4 border-t border-slate-100">
-            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-2 text-center">
-              Quick Multi-User Account Selector
-            </p>
-            <div className="grid grid-cols-3 gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleQuickDemoUser('22BCE1024', 'password123')}
-                className="px-2 py-1.5 bg-teal-50 border border-teal-200/70 text-[#005F73] rounded-xl text-[10px] font-bold hover:bg-teal-100 transition-colors truncate"
-              >
-                Chris (22BCE1024)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemoUser('23BCE0512', 'password123')}
-                className="px-2 py-1.5 bg-blue-50 border border-blue-200/70 text-blue-800 rounded-xl text-[10px] font-bold hover:bg-blue-100 transition-colors truncate"
-              >
-                Rahul (23BCE0512)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemoUser('21BCE0199', 'password123')}
-                className="px-2 py-1.5 bg-purple-50 border border-purple-200/70 text-purple-800 rounded-xl text-[10px] font-bold hover:bg-purple-100 transition-colors truncate"
-              >
-                Ananya (21BCE0199)
-              </button>
-            </div>
-          </div>
-
-          <div className="pt-2 text-center">
-            <p className="text-xs text-slate-500">
-              New to CampusOS?{' '}
-              <Link to="/register" className="font-bold text-[#005F73] hover:text-[#0A9396]">
+          <div className="pt-4 text-center">
+            <p className="text-xs text-stone-500">
+              New student?{' '}
+              <Link to="/register" className="font-bold text-[#9D0208] hover:text-[#DC2F02]">
                 Register New Student Account
               </Link>
             </p>
@@ -203,13 +165,13 @@ export const LoginPage: React.FC = () => {
         <div className="space-y-4 text-xs text-slate-600">
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-amber-800">
             <HelpCircle className="w-5 h-5 text-amber-600 shrink-0" />
-            <span>Enter your registered VIT student email address to receive password reset instructions.</span>
+            <span>Enter your registered VIT student email address ending in @vitstudent.ac.in to receive password reset instructions.</span>
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Student Email Address</label>
             <input
               type="email"
-              placeholder="e.g. chris.student2022@vitstudent.ac.in"
+              placeholder="e.g. rahul.sharma2023@vitstudent.ac.in"
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
             />
           </div>

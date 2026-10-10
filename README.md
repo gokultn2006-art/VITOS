@@ -52,10 +52,12 @@ python manage.py runserver 0.0.0.0:8000
 ```
 Open [http://localhost:8000/api/](http://localhost:8000/api/) to view Django REST endpoints.
 
-### 3. Docker Compose Setup
-```bash
-docker-compose up --build
+### 3. One-Click Launcher (Windows)
+Double-click `start-local.bat` or run:
+```powershell
+.\start-local.ps1
 ```
+This automatically boots both Django (port 8000) and Vite (port 5173).
 
 ---
 

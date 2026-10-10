@@ -23,15 +23,15 @@ export const LocationCard: React.FC<LocationCardProps> = ({
             alt={location.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#005F73]">
+          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#9D0208]">
             {location.category}
           </div>
           {onSaveToggle && (
             <button
               onClick={() => onSaveToggle(location)}
-              className="absolute top-3 left-3 p-2 rounded-full bg-white/80 backdrop-blur-xs text-slate-700 hover:text-[#0A9396] transition-colors"
+              className="absolute top-3 left-3 p-2 rounded-full bg-white/80 backdrop-blur-xs text-slate-700 hover:text-[#9D0208] transition-colors"
             >
-              <Bookmark className={`w-4 h-4 ${location.isSaved ? 'fill-[#0A9396] text-[#0A9396]' : ''}`} />
+              <Bookmark className={`w-4 h-4 ${location.isSaved ? 'fill-[#DC2F02] text-[#DC2F02]' : ''}`} />
             </button>
           )}
         </div>
@@ -52,7 +52,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
 
           {location.openingHours && (
             <div className="flex items-center gap-1.5 mt-3 text-[11px] text-slate-500">
-              <Clock className="w-3.5 h-3.5 text-[#0A9396]" />
+              <Clock className="w-3.5 h-3.5 text-[#DC2F02]" />
               <span>{location.openingHours}</span>
             </div>
           )}
@@ -62,7 +62,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
               {location.facilities.slice(0, 3).map((facility, i) => (
                 <span
                   key={i}
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-teal-50 text-[#005F73] font-medium"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-[#9D0208] border border-amber-200/60 font-medium"
                 >
                   {facility}
                 </span>
@@ -78,7 +78,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
 
         <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
-            <MapPin className="w-3.5 h-3.5 text-[#0A9396]" />
+            <MapPin className="w-3.5 h-3.5 text-[#9D0208]" />
             <span>{location.building || 'VIT Campus'}</span>
           </div>
 

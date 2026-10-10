@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Compass, MapPin, Bot, DoorOpen, Navigation2, Clock,
-  Activity, BookOpen, Printer, CreditCard, Sparkles,
+  Activity, BookOpen, Printer, CreditCard,
   ArrowRight, Footprints, AlertCircle, Calendar,
   ChevronRight, LocateFixed, Radio, CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { notificationsList, campusLocations } from '../data/mockData';
+import { campusLocations } from '../data/mockData';
+import { notificationService } from '../services/api';
+import type { NotificationItem } from '../types';
 import { calculateDistanceMeters, calculateWalkingMinutes, calculateLeaveByTime } from '../utils/geolocation';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -69,8 +71,17 @@ function buildAllOccurrences(regNo: string): ScheduledClass[] {
   const storageKey = `vitos_timetable_${regNo}`;
   let rawText = '';
   try {
-    rawText = localStorage.getItem(storageKey) || DEFAULT_VIT_REGISTRATION_DATA;
-  } catch { rawText = DEFAULT_VIT_REGISTRATION_DATA; }
+    const saved = localStorage.getItem(storageKey);
+    if (saved !== null) {
+      rawText = saved;
+    } else if (regNo === '22BCE1024') {
+      rawText = DEFAULT_VIT_REGISTRATION_DATA;
+    } else {
+      rawText = '';
+    }
+  } catch {
+    rawText = regNo === '22BCE1024' ? DEFAULT_VIT_REGISTRATION_DATA : '';
+  }
 
   const parsed = parseVitCourseRegistrationText(rawText);
   const all: ScheduledClass[] = [];
@@ -188,29 +199,29 @@ function ClassCard({
       {/* course info */}
       <div className="flex flex-col sm:flex-row sm:items-start gap-3">
         <div className="flex-1 min-w-0">
-          <div className={`text-[11px] font-mono font-bold mb-0.5 ${cls.courseType === 'lab' ? 'text-[#005F73]' : 'text-[#329d9c]'}`}>
+          <div className={`text-[11px] font-mono font-bold mb-0.5 ${cls.courseType === 'lab' ? 'text-[#9D0208]' : 'text-[#DC2F02]'}`}>
             {cls.courseCode}
-            <span className={`ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold ${cls.courseType === 'lab' ? 'bg-[#005F73]/10' : 'bg-[#329d9c]/10'}`}>
+            <span className={`ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold ${cls.courseType === 'lab' ? 'bg-[#9D0208]/10 text-[#9D0208]' : 'bg-[#DC2F02]/10 text-[#DC2F02]'}`}>
               {cls.courseType.toUpperCase()}
             </span>
           </div>
-          <h3 className="text-sm font-extrabold text-slate-800 leading-snug truncate" title={cls.courseName}>
+          <h3 className="text-sm font-extrabold text-stone-900 leading-snug truncate" title={cls.courseName}>
             {cls.courseName}
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Faculty: <span className="text-slate-700 font-semibold">{cls.faculty}</span>
+          <p className="text-xs text-stone-500 mt-0.5">
+            Faculty: <span className="text-stone-800 font-semibold">{cls.faculty}</span>
           </p>
         </div>
 
-        <div className="shrink-0 text-right sm:border-l sm:border-slate-100 sm:pl-4 space-y-1">
-          <div className="text-xs font-mono font-bold text-slate-700">
+        <div className="shrink-0 text-right sm:border-l sm:border-stone-100 sm:pl-4 space-y-1">
+          <div className="text-xs font-mono font-bold text-stone-700">
             {cls.slotInfo.startTime} – {cls.slotInfo.endTime}
           </div>
-          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#005F73]/10 text-[#005F73] text-[11px] font-extrabold">
+          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-[#9D0208] text-[11px] font-extrabold">
             <MapPin className="w-3 h-3" />
             {cls.venue}
           </div>
-          <div className="text-[10px] text-slate-400 font-mono">
+          <div className="text-[10px] text-stone-400 font-mono">
             {distM} m · {walkMin} min walk
           </div>
         </div>
@@ -218,17 +229,17 @@ function ClassCard({
 
       {/* departure + navigate */}
       <div className="flex items-center justify-between p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/60">
-        <div className="flex items-center gap-1.5 text-xs text-amber-800">
-          <Footprints className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+        <div className="flex items-center gap-1.5 text-xs text-amber-900">
+          <Footprints className="w-3.5 h-3.5 text-amber-600 shrink-0" />
           <span>
             <strong>Leave by </strong>
             <span className="font-mono font-bold">{leaveInfo.leaveByTimeString}</span>
-            <span className="text-amber-600/80 ml-1">({walkMin} min walk)</span>
+            <span className="text-amber-700/80 ml-1">({walkMin} min walk)</span>
           </span>
         </div>
         <button
           onClick={() => onNavigate(cls.venue)}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#005F73] hover:bg-[#0A9396] text-white text-[11px] font-bold transition-colors"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#9D0208] hover:bg-[#6A040F] text-white text-[11px] font-bold transition-colors"
         >
           <Navigation2 className="w-3 h-3" />
           Go
@@ -243,25 +254,35 @@ export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [greeting, setGreeting] = useState('Good morning');
   const [now, setNow] = useState(new Date());
-  const [currentClass, setCurrentClass] = useState<ScheduledClass | null>(null);
-  const [nextClass, setNextClass] = useState<ScheduledClass | null>(null);
-  const [todayDate, setTodayDate] = useState('');
-  const [todayDayCode, setTodayDayCode] = useState('');
-  const [hasTimetable, setHasTimetable] = useState(true);
+  const [backendNotifications, setBackendNotifications] = useState<NotificationItem[]>([]);
+
+  // Fetch verified backend notifications on mount
+  useEffect(() => {
+    let isMounted = true;
+    notificationService.getNotifications().then((data) => {
+      if (isMounted) {
+        setBackendNotifications(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // GPS
   const [userLat, setUserLat] = useState(12.9718);
   const [userLng, setUserLng] = useState(79.1633);
   const [locationName, setLocationName] = useState('VIT Campus');
-  const [locatingGPS, setLocatingGPS] = useState(false);
+  const [locatingGPS, setLocatingGPS] = useState(() => typeof navigator !== 'undefined' && Boolean(navigator.geolocation));
+
+  // Campus bounds check for reliable walking estimates
+  const isWithinCampus = (lat: number, lng: number) =>
+    lat >= 12.956 && lat <= 12.982 && lng >= 79.140 && lng <= 79.172;
 
   // ── greeting ──────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const h = new Date().getHours();
-    setGreeting(h >= 5 && h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening');
-  }, []);
+  const currentHour = now.getHours();
+  const greeting = currentHour >= 5 && currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
 
   // ── live clock: tick every 30 s ────────────────────────────────────────────
   useEffect(() => {
@@ -271,8 +292,10 @@ export const DashboardPage: React.FC = () => {
 
   // ── GPS watch ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!navigator.geolocation) return;
-    setLocatingGPS(true);
+    if (!navigator.geolocation) {
+      setLocatingGPS(false);
+      return;
+    }
     const id = navigator.geolocation.watchPosition(
       (pos) => {
         setUserLat(pos.coords.latitude);
@@ -286,29 +309,76 @@ export const DashboardPage: React.FC = () => {
     return () => navigator.geolocation.clearWatch(id);
   }, []);
 
-  // ── compute schedule whenever clock ticks or user changes ──────────────────
-  const computeAndSet = useCallback(() => {
+  // ── derive schedule whenever clock ticks or user changes ───────────────────
+  const { currentClass, nextClass, todayDate, todayDayCode, hasTimetable } = useMemo(() => {
     const regNo = user?.regNo || '22BCE1024';
     const all = buildAllOccurrences(regNo);
 
     if (all.length === 0) {
-      setHasTimetable(false);
-      setCurrentClass(null);
-      setNextClass(null);
-      setTodayDate(new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }));
-      setTodayDayCode(DAY_CODES[new Date().getDay()]);
-      return;
+      return {
+        hasTimetable: false,
+        currentClass: null,
+        nextClass: null,
+        todayDate: new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }),
+        todayDayCode: DAY_CODES[new Date().getDay()] || 'MON',
+      };
     }
 
-    setHasTimetable(true);
     const { current, next, todayDate: td, todayDayCode: tdc } = computeSchedule(all, now);
-    setCurrentClass(current);
-    setNextClass(next);
-    setTodayDate(td);
-    setTodayDayCode(tdc);
+    return {
+      hasTimetable: true,
+      currentClass: current,
+      nextClass: next,
+      todayDate: td,
+      todayDayCode: tdc,
+    };
   }, [user?.regNo, now]);
 
-  useEffect(() => { computeAndSet(); }, [computeAndSet]);
+  // Derive notifications directly from active timetable data (Single Source of Truth)
+  const dynamicNotifications: NotificationItem[] = useMemo(() => {
+    const list: NotificationItem[] = [];
+
+    // 1. Ongoing Class notification
+    if (currentClass) {
+      list.push({
+        id: `ongoing_${currentClass.courseCode}`,
+        title: `Ongoing Class: ${currentClass.courseCode}`,
+        message: `${currentClass.courseName} is currently in session in ${currentClass.venue} until ${currentClass.slotInfo.endTime}.`,
+        timestamp: 'Happening Now',
+        type: 'timetable',
+        isRead: false,
+      });
+    }
+
+    // 2. Upcoming Class notification
+    if (nextClass) {
+      let walkingInfo = '';
+      if (userLat != null && userLng != null && isWithinCampus(userLat, userLng)) {
+        const loc = resolveVenueLocation(nextClass.venue);
+        if (loc && loc.lat && loc.lng) {
+          const distM = calculateDistanceMeters({ lat: userLat, lng: userLng }, { lat: loc.lat, lng: loc.lng });
+          const walkMin = calculateWalkingMinutes(distM);
+          walkingInfo = ` (${walkMin} min walk)`;
+        }
+      }
+
+      list.push({
+        id: `upcoming_${nextClass.courseCode}`,
+        title: 'Upcoming Class Alert',
+        message: `${nextClass.courseName} (${nextClass.courseCode}) in ${nextClass.venue} starts at ${nextClass.slotInfo.startTime}${walkingInfo}.`,
+        timestamp: nextClass.dayLabel || 'Upcoming',
+        type: 'timetable',
+        isRead: false,
+      });
+    }
+
+    // 3. Verified Backend notifications (if any exist in database)
+    backendNotifications.forEach((bn) => {
+      list.push(bn);
+    });
+
+    return list;
+  }, [currentClass, nextClass, userLat, userLng, backendNotifications]);
 
   // ── quick services ─────────────────────────────────────────────────────────
   const quickServices = [
@@ -328,7 +398,7 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-6">
 
       {/* ── Greeting Banner ───────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-[#005F73] to-[#0A9396] rounded-3xl p-6 md:p-8 text-white shadow-md relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#370617] via-[#6A040F] to-[#9D0208] rounded-3xl p-6 md:p-8 text-white shadow-md relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 opacity-10 pointer-events-none">
           <Compass className="w-64 h-64 text-white" />
         </div>
@@ -336,29 +406,36 @@ export const DashboardPage: React.FC = () => {
         <div className="relative z-10 max-w-2xl">
           {/* meta pills */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold text-teal-100">
-              <Sparkles className="w-3.5 h-3.5 text-[#94D2BD]" />
-              <span>{user?.regNo || '22BCE1024'}</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-mono text-teal-200">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-mono text-[#FFBA08]">
               <Calendar className="w-3 h-3" />
               <span>{todayDate}</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-mono text-teal-200">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-mono text-[#FFBA08]">
               <Clock className="w-3 h-3" />
               <span>{now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
             </div>
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            {greeting}, {user?.name || 'Student'} 👋
-          </h1>
-          <p className="text-xs md:text-sm text-teal-100/90 mt-1 leading-relaxed">
-            {user?.program || 'B.Tech Computer Science and Engineering'} ({user?.year || '3rd Year'})
-          </p>
+          <div className="flex items-center gap-4">
+            <img
+              src={user?.avatar || '/default-avatar.png'}
+              alt={user?.name || 'Student'}
+              onClick={() => navigate('/profile')}
+              className="w-14 h-14 md:w-16 md:h-16 rounded-2xl object-cover bg-white/10 border-2 border-amber-300/40 shadow-md cursor-pointer hover:scale-105 hover:border-[#FFBA08] transition-all shrink-0"
+              title="Click to view/edit profile"
+            />
+            <div>
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                {greeting}, {user?.name || 'Student'} 👋
+              </h1>
+              <p className="text-xs md:text-sm text-stone-200 mt-0.5 leading-relaxed">
+                {user?.program || 'B.Tech Computer Science and Engineering'} ({user?.year || '3rd Year'})
+              </p>
+            </div>
+          </div>
 
           {/* GPS pill */}
-          <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-teal-300/80">
+          <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-[#FAA307]">
             {locatingGPS
               ? <><LocateFixed className="w-3 h-3 animate-pulse" /> Getting your location...</>
               : <><MapPin className="w-3 h-3" /> {locationName}</>
@@ -376,9 +453,9 @@ export const DashboardPage: React.FC = () => {
               <button
                 key={a.path}
                 onClick={() => navigate(a.path)}
-                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-semibold text-white transition-all text-left"
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-all text-left"
               >
-                <a.icon className="w-4 h-4 text-[#94D2BD]" />
+                <a.icon className="w-4 h-4 text-[#FFBA08]" />
                 <span>{a.label}</span>
               </button>
             ))}
@@ -390,21 +467,21 @@ export const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Schedule Card */}
-        <Card className="lg:col-span-2 border border-slate-200/80 p-5">
+        <Card className="lg:col-span-2 border border-stone-200/80 p-5">
           {/* header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#005F73]" />
-              <span className="text-xs font-bold text-[#005F73] uppercase tracking-wider">Today's Schedule</span>
+              <Clock className="w-4 h-4 text-[#9D0208]" />
+              <span className="text-xs font-bold text-[#9D0208] uppercase tracking-wider">Today's Schedule</span>
               {todayDayCode && (
-                <span className="px-2 py-0.5 rounded-md bg-[#005F73]/10 text-[#005F73] text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-md bg-amber-100 text-[#9D0208] text-[10px] font-bold">
                   {todayDayCode}
                 </span>
               )}
             </div>
             <button
-              onClick={computeAndSet}
-              className="text-[11px] text-slate-400 hover:text-[#005F73] transition-colors flex items-center gap-1"
+              onClick={() => setNow(new Date())}
+              className="text-[11px] text-stone-400 hover:text-[#9D0208] transition-colors flex items-center gap-1"
               title="Refresh schedule"
             >
               <Radio className="w-3.5 h-3.5" /> Live
@@ -467,12 +544,12 @@ export const DashboardPage: React.FC = () => {
                 <ClassCard
                   cls={nextClass}
                   badge={
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#005F73]/10 text-[#005F73] text-[11px] font-extrabold">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-[#9D0208] text-[11px] font-extrabold">
                       <ChevronRight className="w-3 h-3" />
                       {nextClass.dayLabel?.toUpperCase() || 'UPCOMING'}
                     </span>
                   }
-                  borderColor="border-slate-200 bg-white"
+                  borderColor="border-stone-200 bg-white"
                   userLat={userLat}
                   userLng={userLng}
                   onNavigate={handleNavigate}
@@ -483,9 +560,9 @@ export const DashboardPage: React.FC = () => {
         </Card>
 
         {/* Quick Campus Services */}
-        <Card className="border border-slate-200/80 p-5">
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-            <Compass className="w-4 h-4 text-[#005F73]" />
+        <Card className="border border-stone-200/80 p-5">
+          <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+            <Compass className="w-4 h-4 text-[#9D0208]" />
             Campus Quick Services
           </h3>
           <div className="space-y-2.5">
@@ -500,20 +577,20 @@ export const DashboardPage: React.FC = () => {
                 <div
                   key={srv.code}
                   onClick={() => navigate(`/map?select=${srv.code}`)}
-                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-[#329d9c]/40 hover:shadow-sm transition-all cursor-pointer bg-white group"
+                  className="flex items-center justify-between p-3 rounded-xl border border-stone-100 hover:border-[#9D0208]/40 hover:shadow-sm transition-all cursor-pointer bg-white group"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${srv.bg}`}>
                       <IconComp className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-800 group-hover:text-[#005F73] transition-colors">
+                      <div className="text-xs font-bold text-stone-800 group-hover:text-[#9D0208] transition-colors">
                         {srv.name}
                       </div>
-                      <div className="text-[10px] text-slate-400 font-mono">{distM} m · {walkMin} min</div>
+                      <div className="text-[10px] text-stone-400 font-mono">{distM} m · {walkMin} min</div>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#005F73] group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-stone-300 group-hover:text-[#DC2F02] group-hover:translate-x-0.5 transition-all" />
                 </div>
               );
             })}
@@ -522,19 +599,30 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* ── Notifications ─────────────────────────────────────────────────── */}
-      <Card className="border border-slate-200/80 p-5">
+      <Card className="border border-stone-200/80 p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-[#005F73]" />
-            <h3 className="text-sm font-bold text-slate-800">Recent Campus &amp; Timetable Notifications</h3>
+            <AlertCircle className="w-4 h-4 text-[#9D0208]" />
+            <h3 className="text-sm font-bold text-stone-800">Recent Campus &amp; Timetable Notifications</h3>
           </div>
-          <span className="text-xs text-slate-400">Auto-generated from active timetable</span>
+          <span className="text-xs text-slate-400">
+            {dynamicNotifications.length > 0 ? 'Live verified notifications' : 'Real-time updates'}
+          </span>
         </div>
-        <div className="space-y-3">
-          {notificationsList.map((notif) => (
-            <NotificationCard key={notif.id} notification={notif} />
-          ))}
-        </div>
+
+        {dynamicNotifications.length > 0 ? (
+          <div className="space-y-3">
+            {dynamicNotifications.map((notif) => (
+              <NotificationCard key={notif.id} notification={notif} />
+            ))}
+          </div>
+        ) : (
+          <div className="p-6 text-center text-slate-500 bg-slate-50/60 rounded-2xl border border-dashed border-slate-200 flex flex-col items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-slate-400" />
+            <p className="text-xs font-semibold text-slate-700">No recent campus notifications</p>
+            <p className="text-[11px] text-slate-400">Class alerts and verified campus announcements will appear here when scheduled.</p>
+          </div>
+        )}
       </Card>
     </div>
   );

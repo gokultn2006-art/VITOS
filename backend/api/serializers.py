@@ -25,9 +25,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'isStaff', 'profile']
 
 class BuildingSerializer(serializers.ModelSerializer):
+    totalFloors = serializers.IntegerField(source='total_floors', read_only=True)
+    roomsCount = serializers.IntegerField(source='rooms_count', read_only=True)
+
     class Meta:
         model = Building
-        fields = '__all__'
+        fields = ['id', 'name', 'code', 'lat', 'lng', 'total_floors', 'rooms_count', 'totalFloors', 'roomsCount']
 
 class RoomSerializer(serializers.ModelSerializer):
     buildingCode = serializers.CharField(source='building.code', read_only=True)
@@ -65,9 +68,19 @@ class LostItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DirectoryEntrySerializer(serializers.ModelSerializer):
+    children_count = serializers.SerializerMethodField()
+    has_coordinates = serializers.SerializerMethodField()
+    parent_name = serializers.CharField(source='parent.name', read_only=True)
+
     class Meta:
         model = DirectoryEntry
         fields = '__all__'
+
+    def get_children_count(self, obj):
+        return obj.children.filter(is_active=True).count()
+
+    def get_has_coordinates(self, obj):
+        return obj.latitude is not None and obj.longitude is not None
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:

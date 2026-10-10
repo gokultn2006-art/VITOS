@@ -8,7 +8,7 @@ export const currentUser: User = {
   school: 'SCOPE (School of Computer Science and Engineering)',
   year: '3rd Year (Semester VI)',
   email: 'chris.student2022@vitstudent.ac.in',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256',
+  avatar: '/default-avatar.png',
   savedLocationIds: ['loc_tt', 'loc_lib', 'loc_med'],
   recentSearches: ['TT-624', 'Periyar Library', 'Medical Centre', 'SJT 3rd Floor', 'Food Mall'],
   role: 'student'
@@ -156,6 +156,8 @@ export const campusLocations: CampusLocation[] = [
 export const buildings: Building[] = [
   { id: 'b_tt', name: 'Technology Tower', code: 'TT', lat: 12.9712, lng: 79.1593, totalFloors: 7, roomsCount: 140 },
   { id: 'b_sjt', name: 'Silver Jubilee Tower', code: 'SJT', lat: 12.9718, lng: 79.1633, totalFloors: 8, roomsCount: 180 },
+  { id: 'b_smv', name: 'Sir M. Visvesvaraya Block', code: 'SMV', lat: 12.9708, lng: 79.1582, totalFloors: 6, roomsCount: 90 },
+  { id: 'b_mgb', name: 'Mahatma Gandhi Block (MGB)', code: 'MGB', lat: 12.9734, lng: 79.1610, totalFloors: 5, roomsCount: 75 },
   { id: 'b_mb', name: 'Main Building', code: 'MB', lat: 12.9696, lng: 79.1559, totalFloors: 4, roomsCount: 65 },
   { id: 'b_lib', name: 'Central Library', code: 'LIB', lat: 12.9699, lng: 79.1578, totalFloors: 6, roomsCount: 24 }
 ];
@@ -298,7 +300,7 @@ export const lostItemsList: LostItem[] = [
   {
     id: 'item_1',
     type: 'lost',
-    title: 'VIT Student ID Card (Reg: 22BCE1024)',
+    title: 'VIT Student ID Card',
     category: 'ID Card',
     locationName: 'Near Periyar Library Staircase',
     dateReported: '2026-08-20',

@@ -73,14 +73,14 @@ export const LostFoundPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Banner */}
-      <div className="bg-gradient-to-r from-[#005F73] to-[#0A9396] rounded-3xl p-6 md:p-8 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#370617] via-[#6A040F] to-[#9D0208] rounded-3xl p-6 md:p-8 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-teal-100 mb-2">
-            <PackageSearch className="w-3.5 h-3.5 text-[#94D2BD]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-[#FFBA08] mb-2">
+            <PackageSearch className="w-3.5 h-3.5 text-[#FFBA08]" />
             <span>VIT Vellore Student Recovery Desk</span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight">Campus Lost & Found</h1>
-          <p className="text-xs md:text-sm text-teal-100/90 mt-1">
+          <p className="text-xs md:text-sm text-stone-200 mt-1">
             Report lost ID cards, calculators, electronics, or claim items found across campus.
           </p>
         </div>
@@ -103,18 +103,18 @@ export const LostFoundPage: React.FC = () => {
       )}
 
       {/* Controls Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+      <div className="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           {/* Tabs */}
-          <div className="flex bg-slate-100 p-1 rounded-xl w-full md:w-auto">
+          <div className="flex bg-stone-100 p-1 rounded-xl w-full md:w-auto">
             {(['all', 'lost', 'found'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg capitalize transition-all ${
                   activeTab === tab
-                    ? 'bg-white text-[#005F73] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-white text-[#9D0208] shadow-xs'
+                    : 'text-stone-500 hover:text-stone-800'
                 }`}
               >
                 {tab === 'all' ? 'All Items' : `${tab} Items`}
@@ -124,26 +124,26 @@ export const LostFoundPage: React.FC = () => {
 
           {/* Search Box */}
           <div className="relative w-full md:w-72">
-            <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-stone-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search ID card, calculator, wallet..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#005F73]"
+              className="w-full pl-9 pr-4 py-2 bg-stone-100 border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#9D0208]"
             />
           </div>
         </div>
 
         {/* Category Chips */}
-        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 overflow-x-auto no-scrollbar">
-          <span className="text-xs font-bold text-slate-400 uppercase shrink-0">Category:</span>
+        <div className="flex items-center gap-1.5 pt-2 border-t border-stone-100 overflow-x-auto no-scrollbar">
+          <span className="text-xs font-bold text-stone-400 uppercase shrink-0">Category:</span>
           <button
             onClick={() => setSelectedCategory('all')}
             className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
               selectedCategory === 'all'
-                ? 'bg-[#005F73] text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-gradient-to-r from-[#6A040F] to-[#9D0208] text-white shadow-xs'
+                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
             }`}
           >
             All Categories
@@ -154,8 +154,8 @@ export const LostFoundPage: React.FC = () => {
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                 selectedCategory === cat
-                  ? 'bg-[#005F73] text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-gradient-to-r from-[#6A040F] to-[#9D0208] text-white shadow-xs'
+                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
               {cat}
@@ -209,24 +209,24 @@ export const LostFoundPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Item Title</label>
+            <label className="block text-xs font-bold text-stone-700 mb-1">Item Title</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Black Casio Calculator FX-991EX"
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#005F73]"
+              className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs focus:ring-2 focus:ring-[#9D0208]"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Category</label>
+              <label className="block text-xs font-bold text-stone-700 mb-1">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#005F73]"
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs focus:ring-2 focus:ring-[#9D0208]"
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -237,27 +237,27 @@ export const LostFoundPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Location</label>
+              <label className="block text-xs font-bold text-stone-700 mb-1">Location</label>
               <input
                 type="text"
                 required
                 value={locationName}
                 onChange={(e) => setLocationName(e.target.value)}
                 placeholder="e.g. TT-624 or Periyar Library"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#005F73]"
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs focus:ring-2 focus:ring-[#9D0208]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Description</label>
+            <label className="block text-xs font-bold text-stone-700 mb-1">Description</label>
             <textarea
               required
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide key details like colors, marks, or serial numbers..."
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#005F73]"
+              className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs focus:ring-2 focus:ring-[#9D0208]"
             />
           </div>
 

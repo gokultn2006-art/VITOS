@@ -3,11 +3,24 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-vit-campusos-master-dev-secret-key'
+# Load .env file if available in backend or project root
+for env_file in [BASE_DIR / '.env', BASE_DIR.parent / '.env']:
+    if env_file.exists():
+        try:
+            with open(env_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        os.environ[k.strip()] = v.strip().strip('"').strip("'")
+        except Exception:
+            pass
 
-DEBUG = True
-
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-vit-campusos-master-dev-secret-key')
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['*']
+
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -54,7 +67,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'vitos_backend.wsgi'
+WSGI_APPLICATION = 'vitos_backend.wsgi.application'
 
 DATABASES = {
     'default': {
@@ -74,3 +87,15 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Email Delivery Configuration
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '').strip()
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '').strip().replace(' ', '')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = f'VIT Vellore Admissions <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'noreply@vitstudent.ac.in'
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')

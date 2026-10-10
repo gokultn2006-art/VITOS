@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, FileText, AlertTriangle, CheckCircle2, Sparkles, Trash2 } from 'lucide-react';
 import { TABLE_COLUMNS, DAYS_5, DEFAULT_SLOT_LABEL } from '../utils/vitSlotMaster';
 import { parseVitCourseRegistrationText, convertCoursesToGridMap } from '../utils/vitParser';
@@ -18,27 +18,24 @@ export const TimetablePage: React.FC = () => {
   const getSavedText = (): string => {
     try {
       const saved = localStorage.getItem(storageKey);
-      return saved !== null ? saved : DEFAULT_VIT_REGISTRATION_DATA;
+      if (saved !== null) return saved;
+      // Only demo student Chris starts with demo registered data
+      if (user?.regNo === '22BCE1024') return DEFAULT_VIT_REGISTRATION_DATA;
+      // All new or other users start with fresh, empty timetable slots
+      return '';
     } catch {
-      return DEFAULT_VIT_REGISTRATION_DATA;
+      return '';
     }
   };
 
   const [rawText, setRawText] = useState<string>(getSavedText);
-  const [parsedCourses, setParsedCourses] = useState<ParsedCourseItem[]>([]);
-  const [gridMap, setGridMap] = useState<Map<string, GridCell>>(new Map());
+  const [parsedCourses, setParsedCourses] = useState<ParsedCourseItem[]>(() => parseVitCourseRegistrationText(getSavedText()));
+  const [gridMap, setGridMap] = useState<Map<string, GridCell>>(() => convertCoursesToGridMap(parseVitCourseRegistrationText(getSavedText())));
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [clashCount, setClashCount] = useState<number>(0);
   const [notification, setNotification] = useState<string | null>(null);
 
-  // When the logged-in user changes (e.g. switch accounts), reload their timetable
-  useEffect(() => {
-    const saved = getSavedText();
-    setRawText(saved);
-    handleParseAndLoad(saved);
-  }, [storageKey]);
-
-  const handleParseAndLoad = (textToParse: string) => {
+  const handleParseAndLoad = useCallback((textToParse: string) => {
     const parsed = parseVitCourseRegistrationText(textToParse);
     setParsedCourses(parsed);
     const map = convertCoursesToGridMap(parsed);
@@ -49,7 +46,14 @@ export const TimetablePage: React.FC = () => {
       if (cell.courses.length > 1) clashes++;
     });
     setClashCount(clashes);
-  };
+  }, []);
+
+  // When the logged-in user changes (e.g. switch accounts), reload their timetable
+  useEffect(() => {
+    const saved = getSavedText();
+    setRawText(saved);
+    handleParseAndLoad(saved);
+  }, [storageKey, handleParseAndLoad]);
 
   const handleImportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,14 +89,14 @@ export const TimetablePage: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#005F73] to-[#0A9396] rounded-3xl p-6 md:p-8 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#370617] via-[#6A040F] to-[#9D0208] rounded-3xl p-6 md:p-8 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-xs font-semibold text-teal-100 mb-2">
-            <Calendar className="w-3.5 h-3.5 text-[#94D2BD]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs text-xs font-semibold text-[#FFBA08] mb-2">
+            <Calendar className="w-3.5 h-3.5 text-[#FFBA08]" />
             <span>Official VIT FFCS Timetable Matrix</span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight">Student Weekly Timetable</h1>
-          <p className="text-xs md:text-sm text-teal-100/90 mt-1">
+          <p className="text-xs md:text-sm text-stone-200 mt-1">
             Parse VTOP registration slips and view courses mapped directly to theory and lab slots.
           </p>
         </div>
@@ -130,22 +134,36 @@ export const TimetablePage: React.FC = () => {
         </div>
       )}
 
+      {/* Fresh Slot Guidance Banner */}
+      {parsedCourses.length === 0 && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-[#03071E]">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-5 h-5 text-[#DC2F02] shrink-0" />
+            <div>
+              <p className="font-bold text-[#03071E]">Fresh Student Timetable Matrix</p>
+              <p className="text-stone-600">You have no courses scheduled yet. Import your VTOP course registration slip to load your personalized slots.</p>
+            </div>
+          </div>
+          <Button size="sm" variant="primary" onClick={() => setIsImportModalOpen(true)}>
+            Import VTOP Slip
+          </Button>
+        </div>
+      )}
+
       {/* Stats Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4 text-xs font-semibold text-slate-700">
+      <div className="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4 text-xs font-semibold text-stone-700">
           <span className="flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-[#005F73]" />
+            <Sparkles className="w-4 h-4 text-[#9D0208]" />
             <span>Active Courses: <strong>{parsedCourses.length}</strong></span>
           </span>
-          <span className="text-slate-300">|</span>
-          <span>Student Reg: <strong className="font-mono text-[#005F73]">22BCE1024</strong></span>
         </div>
 
         <div className="flex items-center gap-3 text-[11px] font-bold">
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#329d9c] text-white">
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#9D0208] text-white">
             Theory Block (Slots A-G, TA-TG)
           </span>
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#005F73] text-white">
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#370617] text-white">
             Lab Block (Slots L1-L60)
           </span>
         </div>
@@ -233,9 +251,9 @@ export const TimetablePage: React.FC = () => {
                               ? cell.hasClash
                                 ? 'bg-amber-100 border-2 border-amber-500'
                                 : cell.courses[0].courseType === 'lab'
-                                ? 'bg-[#005F73] text-white shadow-xs'
-                                : 'bg-[#329d9c] text-white shadow-xs'
-                              : 'bg-[#FFFFCD] text-slate-700 font-semibold'
+                                ? 'bg-[#370617] text-white shadow-xs'
+                                : 'bg-[#9D0208] text-white shadow-xs'
+                              : 'bg-amber-50/70 text-[#03071E] font-semibold'
                           }`}
                         >
                           {!isExtramuralCell && cell && cell.courses.length > 0 ? (
@@ -254,7 +272,7 @@ export const TimetablePage: React.FC = () => {
                               ))}
                             </div>
                           ) : (
-                            <span className={defaultLabel === 'Extramural' ? 'font-bold text-red-600 text-xs' : 'text-xs text-slate-600 font-medium'}>
+                            <span className={defaultLabel === 'Extramural' ? 'font-bold text-red-600 text-xs' : 'text-xs text-stone-700 font-medium'}>
                               {defaultLabel}
                             </span>
                           )}
@@ -281,9 +299,9 @@ export const TimetablePage: React.FC = () => {
                               ? cell.hasClash
                                 ? 'bg-amber-100 border-2 border-amber-500'
                                 : cell.courses[0].courseType === 'lab'
-                                ? 'bg-[#005F73] text-white shadow-xs'
-                                : 'bg-[#329d9c] text-white shadow-xs'
-                              : 'bg-[#FFFFCD] text-slate-700 font-semibold'
+                                ? 'bg-[#370617] text-white shadow-xs'
+                                : 'bg-[#9D0208] text-white shadow-xs'
+                              : 'bg-amber-50/70 text-[#03071E] font-semibold'
                           }`}
                         >
                           {cell && cell.courses.length > 0 ? (
@@ -302,7 +320,7 @@ export const TimetablePage: React.FC = () => {
                               ))}
                             </div>
                           ) : (
-                            <span className={defaultLabel === 'Extramural' ? 'font-bold text-red-600 text-xs' : 'text-xs text-slate-600 font-medium'}>
+                            <span className={defaultLabel === 'Extramural' ? 'font-bold text-red-600 text-xs' : 'text-xs text-stone-700 font-medium'}>
                               {defaultLabel}
                             </span>
                           )}
@@ -320,23 +338,23 @@ export const TimetablePage: React.FC = () => {
       {/* Import Modal for VTOP Copy-Pasted Text */}
       <Modal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} title="Import VTOP Course Registration Slip">
         <form onSubmit={handleImportSubmit} className="space-y-4 text-xs">
-          <div className="p-4 bg-teal-50 border border-teal-200 rounded-2xl text-teal-900 leading-relaxed">
-            <p className="font-bold mb-1 flex items-center gap-1.5 text-sm">
-              <Sparkles className="w-4.5 h-4.5 text-[#005F73]" />
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-[#03071E] leading-relaxed">
+            <p className="font-bold mb-1 flex items-center gap-1.5 text-sm text-[#9D0208]">
+              <Sparkles className="w-4.5 h-4.5 text-[#9D0208]" />
               <span>Paste Raw VTOP Registration Slip</span>
             </p>
-            <p className="text-xs text-teal-800">
+            <p className="text-xs text-stone-700">
               Copy and paste your course list directly from VTOP. The parser will automatically extract active courses, split <code>+</code> slot codes (e.g. <code>C2+TC2+TCC2</code>), group lab blocks (e.g. <code>L19+L20</code>), ignore NIL courses, enforce Wednesday Extramural hours, and map them to the timetable.
             </p>
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Registration Data Text</label>
+            <label className="block font-bold text-stone-700 mb-1">Registration Data Text</label>
             <textarea
               rows={12}
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#005F73]"
+              className="w-full p-3.5 bg-stone-50 border border-stone-200 rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#9D0208] focus:border-[#9D0208]"
               placeholder="Paste VTOP course list here..."
             />
           </div>

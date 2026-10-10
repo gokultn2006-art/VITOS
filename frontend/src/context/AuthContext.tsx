@@ -14,7 +14,18 @@ interface AuthContextType {
     programme: string;
     yearSemester: string;
   }) => Promise<boolean>;
+  loginWithGoogle: (data: { email: string; name?: string; picture?: string; credential?: string }) => Promise<{ success: boolean; isNewUser?: boolean }>;
   logout: () => void;
+  updateUserProfile: (data: {
+    fullName?: string;
+    regNo?: string;
+    programme?: string;
+    yearSemester?: string;
+    avatarUrl?: string;
+    school?: string;
+    savedLocationIds?: string[];
+  }) => Promise<boolean>;
+  deleteAccount: () => Promise<boolean>;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
@@ -35,7 +46,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (savedToken && savedUserStr) {
         try {
-          setUser(JSON.parse(savedUserStr));
+          const parsed = JSON.parse(savedUserStr);
+          if (parsed && (parsed.avatar?.includes('images.unsplash.com') || !parsed.avatar)) {
+            parsed.avatar = '/default-avatar.png';
+            localStorage.setItem('vitos_user', JSON.stringify(parsed));
+          }
+          setUser(parsed);
           setToken(savedToken);
         } catch {
           localStorage.removeItem('vitos_token');
@@ -51,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           school: 'SCOPE (School of Computer Science and Engineering)',
           year: '3rd Year (Semester VI)',
           email: 'chris.student2022@vitstudent.ac.in',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256',
+          avatar: '/default-avatar.png',
           savedLocationIds: ['loc_tt', 'loc_lib', 'loc_med'],
           recentSearches: ['TT-624', 'Periyar Library', 'Medical Centre'],
           role: 'student'
@@ -114,9 +130,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       return false;
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed. An account with this Reg No may already exist.');
+      setError(err.response?.data?.error || err.message || 'Registration failed.');
       setLoading(false);
       return false;
+    }
+  };
+
+  const loginWithGoogle = async (data: { email: string; name?: string; picture?: string; credential?: string }): Promise<{ success: boolean; isNewUser?: boolean }> => {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await authService.googleAuth(data);
+      if (res.user && res.token) {
+        setUser(res.user);
+        setToken(res.token);
+        localStorage.setItem('vitos_token', res.token);
+        localStorage.setItem('vitos_user', JSON.stringify(res.user));
+        setLoading(false);
+        return { success: true, isNewUser: res.isNewUser };
+      }
+      setError('Google authentication failed.');
+      setLoading(false);
+      return { success: false, isNewUser: false };
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || 'Google authentication failed.';
+      setError(msg);
+      setLoading(false);
+      return { success: false, isNewUser: false };
     }
   };
 
@@ -127,6 +167,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('vitos_user');
   };
 
+  const updateUserProfile = async (data: {
+    fullName?: string;
+    regNo?: string;
+    programme?: string;
+    yearSemester?: string;
+    avatarUrl?: string;
+    school?: string;
+    savedLocationIds?: string[];
+  }): Promise<boolean> => {
+    try {
+      const res = await authService.updateProfile(data);
+      if (res.user) {
+        const updated: User = {
+          ...res.user,
+          school: data.school || res.user.school || user?.school || 'SCOPE (School of Computer Science and Engineering)'
+        };
+        setUser(updated);
+        localStorage.setItem('vitos_user', JSON.stringify(updated));
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      console.error('Failed to update profile:', err);
+      return false;
+    }
+  };
+
+  const deleteAccount = async (): Promise<boolean> => {
+    try {
+      await authService.deleteAccount();
+      logout();
+      return true;
+    } catch (err: any) {
+      const msg = err.message || 'Failed to delete account.';
+      setError(msg);
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -134,7 +213,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         login,
         register,
+        loginWithGoogle,
         logout,
+        updateUserProfile,
+        deleteAccount,
         isAuthenticated: !!user,
         loading,
         error,

@@ -13,17 +13,17 @@ class Command(BaseCommand):
             {
                 'username': '22BCE1024', 'email': 'chris.student2022@vitstudent.ac.in', 'password': 'password123',
                 'full_name': 'Chris', 'reg_no': '22BCE1024', 'programme': 'B.Tech Computer Science and Engineering',
-                'year_semester': '3rd Year (Semester VI)', 'avatar_url': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'
+                'year_semester': '3rd Year (Semester VI)', 'avatar_url': '/default-avatar.png'
             },
             {
                 'username': '23BCE0512', 'email': 'rahul.sharma2023@vitstudent.ac.in', 'password': 'password123',
                 'full_name': 'Rahul Sharma', 'reg_no': '23BCE0512', 'programme': 'B.Tech Computer Science and Engineering (Data Science)',
-                'year_semester': '2nd Year (Semester IV)', 'avatar_url': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256'
+                'year_semester': '2nd Year (Semester IV)', 'avatar_url': '/default-avatar.png'
             },
             {
                 'username': '21BCE0199', 'email': 'ananya.patel2021@vitstudent.ac.in', 'password': 'password123',
                 'full_name': 'Ananya Patel', 'reg_no': '21BCE0199', 'programme': 'B.Tech Electronics and Communication Engineering',
-                'year_semester': '4th Year (Semester VIII)', 'avatar_url': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256'
+                'year_semester': '4th Year (Semester VIII)', 'avatar_url': '/default-avatar.png'
             }
         ]
 

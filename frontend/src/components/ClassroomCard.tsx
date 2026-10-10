@@ -16,12 +16,12 @@ export const ClassroomCard: React.FC<ClassroomCardProps> = ({ room, onNavigate }
       <div>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-teal-50 text-[#005F73] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-amber-100 text-[#9D0208] flex items-center justify-center">
               <DoorOpen className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-base leading-tight">{room.roomNumber}</h3>
-              <p className="text-xs text-slate-500">{room.buildingName} • Floor {room.floor}</p>
+              <h3 className="font-bold text-[#03071E] text-base leading-tight">{room.roomNumber}</h3>
+              <p className="text-xs text-stone-500">{room.buildingName} • Floor {room.floor}</p>
             </div>
           </div>
 
@@ -37,20 +37,20 @@ export const ClassroomCard: React.FC<ClassroomCardProps> = ({ room, onNavigate }
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 bg-slate-50/80 p-3 rounded-xl">
-          <div className="flex items-center gap-2 text-xs text-slate-600">
-            <Users className="w-4 h-4 text-[#0A9396]" />
+        <div className="mt-4 grid grid-cols-2 gap-3 bg-stone-50/80 p-3 rounded-xl">
+          <div className="flex items-center gap-2 text-xs text-stone-600">
+            <Users className="w-4 h-4 text-[#DC2F02]" />
             <div>
-              <p className="text-[10px] text-slate-400 font-medium uppercase">Capacity</p>
-              <p className="font-semibold text-slate-800">{room.capacity} seats</p>
+              <p className="text-[10px] text-stone-400 font-medium uppercase">Capacity</p>
+              <p className="font-semibold text-[#03071E]">{room.capacity} seats</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-600">
-            <Clock className="w-4 h-4 text-[#0A9396]" />
+          <div className="flex items-center gap-2 text-xs text-stone-600">
+            <Clock className="w-4 h-4 text-[#DC2F02]" />
             <div>
-              <p className="text-[10px] text-slate-400 font-medium uppercase">Status Window</p>
-              <p className="font-semibold text-slate-800 truncate">{room.availableUntil || 'Full Day'}</p>
+              <p className="text-[10px] text-stone-400 font-medium uppercase">Status Window</p>
+              <p className="font-semibold text-[#03071E] truncate">{room.availableUntil || 'Full Day'}</p>
             </div>
           </div>
         </div>
