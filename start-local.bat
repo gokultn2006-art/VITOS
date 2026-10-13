@@ -15,8 +15,9 @@ if not exist "backend\venv\Scripts\python.exe" (
     call backend\venv\Scripts\pip.exe install -r backend\requirements.txt
 )
 
-:: Run migrations if needed
+:: Run migrations and seed multi-user data if needed
 call backend\venv\Scripts\python.exe backend\manage.py migrate --noinput >nul 2>&1
+call backend\venv\Scripts\python.exe backend\manage.py seed_data >nul 2>&1
 
 :: 2. Verify / Setup Frontend
 echo [2/3] Checking React Frontend Environment...

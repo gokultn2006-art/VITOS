@@ -39,24 +39,17 @@ export const authService = {
         role: (u.isStaff === true || u.is_staff === true) ? 'admin' : 'student'
       };
       return { user: userObj, token: res.data.token };
-    } catch {
-      // Demo Fallback Users
-      let userObj: User = {
-        id: 'usr_1024',
-        name: 'Chris',
-        regNo: '22BCE1024',
-        program: 'B.Tech Computer Science and Engineering',
-        school: 'SCOPE (School of Computer Science and Engineering)',
-        year: '3rd Year (Semester VI)',
-        email: 'chris.student2022@vitstudent.ac.in',
-        avatar: '/default-avatar.png',
-        savedLocationIds: ['loc_tt', 'loc_lib', 'loc_med'],
-        recentSearches: ['TT-624', 'Periyar Library', 'Medical Centre'],
-        role: 'student'
-      };
+    } catch (err: any) {
+      if (err.response?.status === 400 || err.response?.status === 401) {
+        throw new Error(err.response?.data?.error || 'Invalid email or password. Please verify your credentials.');
+      }
+      if (err.response?.data?.error) {
+        throw new Error(err.response.data.error);
+      }
 
+      // Offline Demo Fallback Users (only when backend is completely unreachable)
       if (identifier.includes('23BCE0512') || identifier.toLowerCase().includes('rahul')) {
-        userObj = {
+        const userObj: User = {
           id: 'usr_0512',
           name: 'Rahul Sharma',
           regNo: '23BCE0512',
@@ -69,8 +62,9 @@ export const authService = {
           recentSearches: ['SJT-302', 'Food Mall', 'Medical Centre'],
           role: 'student'
         };
+        return { user: userObj, token: `vitos_token_demo_${userObj.regNo}` };
       } else if (identifier.includes('21BCE0199') || identifier.toLowerCase().includes('ananya')) {
-        userObj = {
+        const userObj: User = {
           id: 'usr_0199',
           name: 'Ananya Patel',
           regNo: '21BCE0199',
@@ -83,12 +77,40 @@ export const authService = {
           recentSearches: ['TT-412', 'SENSE Lab'],
           role: 'student'
         };
+        return { user: userObj, token: `vitos_token_demo_${userObj.regNo}` };
       } else if (identifier.includes('admin')) {
-        userObj.role = 'admin';
-        userObj.name = 'Staff Admin';
+        const userObj: User = {
+          id: 'usr_admin',
+          name: 'VIT System Administrator',
+          regNo: 'ADMIN001',
+          program: 'CampusOS Administration',
+          school: 'Staff Administration',
+          year: 'Staff / Faculty',
+          email: 'admin@vitstudent.ac.in',
+          avatar: '/default-avatar.png',
+          savedLocationIds: ['loc_tt', 'loc_lib'],
+          recentSearches: ['TT-624', 'Periyar Library'],
+          role: 'admin'
+        };
+        return { user: userObj, token: 'vitos_token_demo_admin' };
+      } else if (identifier.includes('22BCE1024') || identifier.toLowerCase().includes('chris')) {
+        const userObj: User = {
+          id: 'usr_1024',
+          name: 'Chris',
+          regNo: '22BCE1024',
+          program: 'B.Tech Computer Science and Engineering',
+          school: 'SCOPE (School of Computer Science and Engineering)',
+          year: '3rd Year (Semester VI)',
+          email: 'chris.student2022@vitstudent.ac.in',
+          avatar: '/default-avatar.png',
+          savedLocationIds: ['loc_tt', 'loc_lib', 'loc_med'],
+          recentSearches: ['TT-624', 'Periyar Library', 'Medical Centre'],
+          role: 'student'
+        };
+        return { user: userObj, token: `vitos_token_demo_${userObj.regNo}` };
       }
 
-      return { user: userObj, token: `vitos_token_demo_${userObj.regNo}` };
+      throw new Error(err.message || 'Login failed. Please verify credentials.');
     }
   },
 

@@ -8,20 +8,42 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('Seeding VIT Vellore CampusOS Multi-User System Data...'))
 
+        # Seed Administrator Account
+        admin_user, _ = User.objects.get_or_create(
+            username='admin',
+            defaults={'email': 'admin@vitstudent.ac.in', 'first_name': 'VIT System', 'last_name': 'Administrator', 'is_staff': True, 'is_superuser': True}
+        )
+        admin_user.set_password('admin123')
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.email = 'admin@vitstudent.ac.in'
+        admin_user.save()
+
+        StudentProfile.objects.get_or_create(
+            user=admin_user,
+            defaults={
+                'full_name': 'VIT System Administrator',
+                'reg_no': 'ADMIN001',
+                'programme': 'CampusOS Administration',
+                'year_semester': 'Staff / Faculty',
+                'avatar_url': '/default-avatar.png'
+            }
+        )
+
         # Seed Users & Student Profiles
         students_data = [
             {
-                'username': '22BCE1024', 'email': 'chris.student2022@vitstudent.ac.in', 'password': 'password123',
+                'username': '22BCE1024', 'email': 'chris.student2022@vitstudent.ac.in', 'password': 'student123',
                 'full_name': 'Chris', 'reg_no': '22BCE1024', 'programme': 'B.Tech Computer Science and Engineering',
                 'year_semester': '3rd Year (Semester VI)', 'avatar_url': '/default-avatar.png'
             },
             {
-                'username': '23BCE0512', 'email': 'rahul.sharma2023@vitstudent.ac.in', 'password': 'password123',
+                'username': '23BCE0512', 'email': 'rahul.sharma2023@vitstudent.ac.in', 'password': 'student123',
                 'full_name': 'Rahul Sharma', 'reg_no': '23BCE0512', 'programme': 'B.Tech Computer Science and Engineering (Data Science)',
                 'year_semester': '2nd Year (Semester IV)', 'avatar_url': '/default-avatar.png'
             },
             {
-                'username': '21BCE0199', 'email': 'ananya.patel2021@vitstudent.ac.in', 'password': 'password123',
+                'username': '21BCE0199', 'email': 'ananya.patel2021@vitstudent.ac.in', 'password': 'student123',
                 'full_name': 'Ananya Patel', 'reg_no': '21BCE0199', 'programme': 'B.Tech Electronics and Communication Engineering',
                 'year_semester': '4th Year (Semester VIII)', 'avatar_url': '/default-avatar.png'
             }
@@ -32,9 +54,10 @@ class Command(BaseCommand):
                 username=s_data['username'],
                 defaults={'email': s_data['email'], 'first_name': s_data['full_name']}
             )
-            if created:
-                user.set_password(s_data['password'])
-                user.save()
+            user.set_password(s_data['password'])
+            user.email = s_data['email']
+            user.first_name = s_data['full_name']
+            user.save()
 
             StudentProfile.objects.get_or_create(
                 user=user,

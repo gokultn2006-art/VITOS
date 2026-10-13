@@ -25,7 +25,7 @@ interface AuthContextType {
     school?: string;
     savedLocationIds?: string[];
   }) => Promise<boolean>;
-  deleteAccount: () => Promise<boolean>;
+  deleteAccount: () => Promise<{ success: boolean; error?: string }>;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
@@ -58,24 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.removeItem('vitos_user');
         }
       } else {
-        // Default demo user Chris
-        const defaultUser: User = {
-          id: 'usr_1024',
-          name: 'Chris',
-          regNo: '22BCE1024',
-          program: 'B.Tech Computer Science and Engineering',
-          school: 'SCOPE (School of Computer Science and Engineering)',
-          year: '3rd Year (Semester VI)',
-          email: 'chris.student2022@vitstudent.ac.in',
-          avatar: '/default-avatar.png',
-          savedLocationIds: ['loc_tt', 'loc_lib', 'loc_med'],
-          recentSearches: ['TT-624', 'Periyar Library', 'Medical Centre'],
-          role: 'student'
-        };
-        setUser(defaultUser);
-        setToken('vitos_token_demo_1024');
-        localStorage.setItem('vitos_token', 'vitos_token_demo_1024');
-        localStorage.setItem('vitos_user', JSON.stringify(defaultUser));
+        setUser(null);
+        setToken(null);
       }
       setLoading(false);
     };
@@ -194,15 +178,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const deleteAccount = async (): Promise<boolean> => {
+  const deleteAccount = async (): Promise<{ success: boolean; error?: string }> => {
     try {
       await authService.deleteAccount();
       logout();
-      return true;
+      return { success: true };
     } catch (err: any) {
       const msg = err.message || 'Failed to delete account.';
       setError(msg);
-      return false;
+      return { success: false, error: msg };
     }
   };
 

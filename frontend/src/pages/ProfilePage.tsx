@@ -47,21 +47,22 @@ export const ProfilePage: React.FC = () => {
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
-      const ok = await deleteAccount();
-      if (ok) {
-        setIsDeleteModalOpen(false);
+      const res = await deleteAccount();
+      setIsDeleteModalOpen(false);
+      if (res.success) {
         setIsEditModalOpen(false);
         navigate('/login');
       } else {
         setStatusMessage({
           type: 'error',
-          text: 'Failed to delete student account.',
+          text: res.error || 'Failed to delete student account.',
         });
       }
-    } catch {
+    } catch (err: any) {
+      setIsDeleteModalOpen(false);
       setStatusMessage({
         type: 'error',
-        text: 'An error occurred while deleting your account.',
+        text: err?.message || 'An error occurred while deleting your account.',
       });
     } finally {
       setIsDeleting(false);

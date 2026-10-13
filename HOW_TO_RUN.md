@@ -119,6 +119,7 @@ VITE_GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
 | **System Admin** | `admin@vitstudent.ac.in` (or username `admin`) | `admin123` | Master `/admin` panel & classroom allocation |
 | **Student (Chris)** | `chris.student2022@vitstudent.ac.in` (or `22BCE1024`) | `student123` | Student dashboard, timetable, map, AI assistant |
 | **Student (Rahul)** | `rahul.sharma2023@vitstudent.ac.in` (or `23BCE0512`) | `student123` | Student dashboard, profile edit & delete |
+| **Student (Ananya)** | `ananya.patel2021@vitstudent.ac.in` (or `21BCE0199`) | `student123` | Student dashboard, 4th Year ECE timetable & preferences |
 | **Google Sign-In** | Any `@vitstudent.ac.in` Google Workspace account | Handled by Google SSO | Automatic account provisioning + onboarding |
 
 ---

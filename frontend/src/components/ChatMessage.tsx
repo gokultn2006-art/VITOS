@@ -14,23 +14,25 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
   const isAssistant = message.sender === 'assistant';
 
   // Inline text formatter for links, bold, code, and accents
-  const renderInline = (content: string) => {
-    // Clean lonely trailing asterisks like "SAS*" or "SMEC*" into clean text
-    const cleaned = content.replace(/([A-Z0-9]{2,})\*/g, '$1');
+  const renderInline = (content: string, depth = 0): React.ReactNode => {
+    if (depth > 2) return content;
 
-    // Tokenizer matching markdown links [text](url), bold **text**, inline `code`, and clean *italic*
-    const tokenRegex = /(\[\s*[^\]]+?\s*\]\([^)]+\)|\*\*[^*]+?\*\*|`[^`]+?`|(?<=\s|^)\*[^*\s][^*]*?[^*\s]\*(?=\s|[.,;:!?]|$))/g;
+    // Clean lonely trailing asterisks without breaking closing ** tags (e.g., **GDN**)
+    const cleaned = content.replace(/(?<!\*)\b([A-Z0-9]{2,})\*(?!\*)/g, '$1');
+
+    // Tokenizer matching markdown links (including bold-wrapped links **[text](url)**), bold **text**, inline `code`, and clean *italic*
+    const tokenRegex = /((?:\*\*)?\[\s*[^\]]+?\s*\]\([^)]+\)(?:\*\*)?|\*\*[^*]+?\*\*|`[^`]+?`|(?<=\s|^)\*[^*\s][^*]*?[^*\s]\*(?=\s|[.,;:!?]|$))/g;
     const parts = cleaned.split(tokenRegex);
 
     return parts.map((part, pIdx) => {
       if (!part) return null;
 
-      // 1. Link matching: [Label](URL) or [ 📍 Label ](URL)
-      const linkMatch = part.match(/^\[\s*([^\]]+?)\s*\]\(([^)]+)\)$/);
+      // 1. Link matching: [Label](URL), [ 📍 Label ](URL), or **[Label](URL)**
+      const linkMatch = part.match(/^(?:\*\*)?\[\s*([^\]]+?)\s*\]\(([^)]+)\)(?:\*\*)?$/);
       if (linkMatch) {
         const rawLabel = linkMatch[1];
         const url = linkMatch[2];
-        const cleanLabel = rawLabel.replace(/^[📍🗺️\s]+/, '').trim();
+        const cleanLabel = rawLabel.replace(/^[📍🗺️\s]+/, '').replace(/^\*\*|\*\*$/g, '').trim();
 
         return (
           <button
@@ -56,7 +58,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
       if (boldMatch) {
         return (
           <strong key={pIdx} className="font-extrabold text-[#03071E]">
-            {boldMatch[1]}
+            {renderInline(boldMatch[1], depth + 1)}
           </strong>
         );
       }
@@ -76,7 +78,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
       if (italicMatch) {
         return (
           <em key={pIdx} className="italic text-slate-700">
-            {italicMatch[1]}
+            {renderInline(italicMatch[1], depth + 1)}
           </em>
         );
       }
@@ -179,8 +181,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
       }
 
       // Regular Paragraph
+      const isIndented = line.startsWith('   ') || line.startsWith('  ');
       elements.push(
-        <p key={`p_${idx}`} className="my-1.5 text-slate-700 text-xs md:text-sm leading-relaxed">
+        <p key={`p_${idx}`} className={`my-1.5 text-slate-700 text-xs md:text-sm leading-relaxed ${isIndented ? 'pl-6 -mt-1 text-stone-600' : ''}`}>
           {renderInline(line)}
         </p>
       );

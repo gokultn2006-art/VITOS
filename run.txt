@@ -153,7 +153,7 @@ The system operates natively with zero container overhead:
 
 ### Frontend pages
 
-- `frontend/src/pages/LoginPage.tsx`: Login form, demo account selectors, and password-reset placeholder.
+- `frontend/src/pages/LoginPage.tsx`: Student/Admin login form with VIT email, password, and Google SSO.
 - `frontend/src/pages/RegisterPage.tsx`: Student registration form with client-side password checks.
 - `frontend/src/pages/DashboardPage.tsx`: Main student dashboard with greeting, GPS, timetable parsing, next class, walking estimates, services, and notifications.
 - `frontend/src/pages/MapPage.tsx`: Leaflet campus map with markers, GPS tracking, search/filtering, and backend route drawing.

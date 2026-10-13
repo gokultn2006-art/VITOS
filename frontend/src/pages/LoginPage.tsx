@@ -10,8 +10,8 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState('admin@vitstudent.ac.in');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -37,8 +37,8 @@ export const LoginPage: React.FC = () => {
       } else {
         setErrorMsg('Invalid email or password. Please verify your credentials.');
       }
-    } catch {
-      setErrorMsg('Login failed. Please check your network connection.');
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
