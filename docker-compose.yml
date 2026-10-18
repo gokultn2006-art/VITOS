@@ -1,3 +1,4 @@
+
 services:
   backend:
     build:
@@ -12,8 +13,8 @@ services:
       EMAIL_HOST_PASSWORD: ""
     volumes:
       - vitos_database:/data
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     restart: unless-stopped
 
   frontend:
