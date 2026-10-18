@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "local-demo-change-this-key"
+      SQLITE_DB_PATH: "/data/db.sqlite3"
+      GEMINI_API_KEY: ""
+      GOOGLE_CLIENT_ID: ""
+      EMAIL_HOST_USER: ""
+      EMAIL_HOST_PASSWORD: ""
+    volumes:
+      - vitos_database:/data
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  vitos_database:

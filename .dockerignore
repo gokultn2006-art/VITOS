@@ -1,0 +1,17 @@
+@'
+venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+.git/
+staticfiles/
+media/
+'@ | Set-Content -Encoding utf8 .\backend\.dockerignore
+
+@'
+node_modules/
+dist/
+.env
+.git/
+'@ | Set-Content -Encoding utf8 .\frontend\.dockerignore
