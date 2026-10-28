@@ -2,11 +2,12 @@ import axios from 'axios';
 import { campusLocations, emptyClassrooms, studentTimetable, lostItemsList, directoryEntries, buildings } from '../data/mockData';
 import type { CampusLocation, Room, TimetableEntry, LostItem, DirectoryEntry, NotificationItem, ChatMessage, User, NavigationRouteResult, NavigationStep } from '../types';
 
-const API_BASE = '/api';
+const rawBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const API_BASE = rawBase ? (rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`) : '/api';
 
 const api = axios.create({
   baseURL: API_BASE,
-  timeout: 5000,
+  timeout: 25000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -115,12 +116,12 @@ export const authService = {
   },
 
   async sendOtp(email: string): Promise<{ message: string; email: string }> {
-    const res = await api.post('/auth/send-otp/', { email });
+    const res = await api.post('/auth/send-otp/', { email }, { timeout: 30000 });
     return res.data;
   },
 
   async verifyOtp(email: string, otp: string): Promise<{ message: string; verified: boolean; email: string }> {
-    const res = await api.post('/auth/verify-otp/', { email, otp });
+    const res = await api.post('/auth/verify-otp/', { email, otp }, { timeout: 15000 });
     return res.data;
   },
 

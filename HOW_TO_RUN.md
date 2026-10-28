@@ -28,7 +28,7 @@ If you prefer to start each part individually or inspect live terminal logs, use
 
 1. Open a terminal and navigate to the `backend` directory:
    ```cmd
-   cd C:\Users\chris\Documents\VITOS\backend
+   cd backend
    ```
 2. *(First time only)* Create the virtual environment:
    ```cmd
@@ -71,7 +71,7 @@ If you prefer to start each part individually or inspect live terminal logs, use
 
 1. Open a **second** terminal and navigate to the `frontend` directory:
    ```cmd
-   cd C:\Users\chris\Documents\VITOS\frontend
+   cd frontend
    ```
 2. *(First time only)* Install node modules:
    ```cmd

@@ -4,7 +4,6 @@ import {
   ShieldCheck,
   Building2,
   DoorOpen,
-  PackageSearch,
   Trash2,
   Edit,
   CheckCircle2,
@@ -14,13 +13,13 @@ import {
   Layers,
   MapPin
 } from 'lucide-react';
-import { buildings, lostItemsList } from '../data/mockData';
+import { buildings } from '../data/mockData';
 import { adminService } from '../services/api';
 import { Card } from '../components/Card';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'users' | 'slot-classes' | 'availability' | 'buildings' | 'lostfound'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'slot-classes' | 'availability' | 'buildings'>('users');
   const [availabilities, setAvailabilities] = useState<any[]>([]);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
@@ -129,7 +128,6 @@ export const AdminPage: React.FC = () => {
     { title: 'Registered Users', count: usersList.length, icon: Users, color: 'text-emerald-600 bg-emerald-50' },
     { title: 'Slot Class Matrix', count: `${slotsList.length} Slots`, icon: Layers, color: 'text-indigo-600 bg-indigo-50' },
     { title: 'Classroom Availability', count: availabilities.length, icon: DoorOpen, color: 'text-[#9D0208] bg-amber-50' },
-    { title: 'Active Lost Items', count: lostItemsList.length, icon: PackageSearch, color: 'text-purple-600 bg-purple-50' },
   ];
 
   return (
@@ -162,7 +160,7 @@ export const AdminPage: React.FC = () => {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((st, i) => {
           const Icon = st.icon;
           return (
@@ -225,16 +223,6 @@ export const AdminPage: React.FC = () => {
             >
               <Building2 className="w-3.5 h-3.5" />
               <span>Buildings</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('lostfound')}
-              className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
-                activeTab === 'lostfound' ? 'bg-white text-[#9D0208] shadow-xs' : 'text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <PackageSearch className="w-3.5 h-3.5" />
-              <span>Lost & Found</span>
             </button>
           </div>
         </div>
@@ -557,38 +545,6 @@ export const AdminPage: React.FC = () => {
                         </button>
                       </div>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* TAB 5: LOST AND FOUND */}
-        {activeTab === 'lostfound' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase">
-                  <th className="py-3 px-4">Item</th>
-                  <th className="py-3 px-4">Type</th>
-                  <th className="py-3 px-4">Location</th>
-                  <th className="py-3 px-4">Reported Date</th>
-                  <th className="py-3 px-4">Contact</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                {lostItemsList.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50">
-                    <td className="py-3 px-4 font-bold text-slate-800">{item.title}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${item.type === 'lost' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                        {item.type}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">{item.locationName}</td>
-                    <td className="py-3 px-4 font-mono text-slate-500">{item.dateReported}</td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-[#9D0208]">{item.contactEmail}</td>
                   </tr>
                 ))}
               </tbody>

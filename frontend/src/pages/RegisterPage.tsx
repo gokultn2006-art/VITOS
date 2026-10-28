@@ -78,14 +78,20 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
+    // Immediately show the OTP input card so the user sees where to enter the code
+    setOtpSent(true);
     setIsSendingOtp(true);
     try {
       const res = await authService.sendOtp(cleanEmail);
-      setOtpSent(true);
       setOtpMessage(res.message || `Verification code sent to ${cleanEmail}`);
       setOtpCountdown(60);
     } catch (err: any) {
-      setOtpError(err.response?.data?.error || err.message || 'Failed to dispatch verification code. Please verify the email.');
+      const msg = err.response?.data?.error || err.message;
+      if (err.code === 'ECONNABORTED' || (msg && msg.toLowerCase().includes('timeout'))) {
+        setOtpMessage('Verification code was dispatched. If you received it in your inbox, enter it below.');
+      } else {
+        setOtpError(msg || 'Failed to dispatch verification code. If you received the code, enter it below.');
+      }
     } finally {
       setIsSendingOtp(false);
     }
@@ -303,15 +309,29 @@ export const RegisterPage: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Domain Requirement Hint */}
-                  <p className="text-[11px] text-stone-500 flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#9D0208]" />
-                    <span>Must end with <strong>@vitstudent.ac.in</strong> to receive verification code.</span>
-                  </p>
+                  {/* Domain Requirement Hint & Direct Access to Code Input */}
+                  <div className="flex items-center justify-between text-[11px] text-stone-500">
+                    <p className="flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#9D0208]" />
+                      <span>Must end with <strong>@vitstudent.ac.in</strong></span>
+                    </p>
+                    {!otpSent && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpSent(true);
+                          setOtpError('');
+                        }}
+                        className="font-bold text-[#9D0208] hover:text-[#6A040F] hover:underline cursor-pointer"
+                      >
+                        Already have a code? Enter here
+                      </button>
+                    )}
+                  </div>
 
                   {/* OTP Code Entry Card */}
                   {otpSent && (
-                    <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2.5 animate-in fade-in duration-200">
+                    <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2.5">
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="font-bold text-[#9D0208] flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5 text-[#DC2F02]" />
@@ -323,10 +343,21 @@ export const RegisterPage: React.FC = () => {
                       <div className="flex gap-2">
                         <input
                           type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           maxLength={6}
                           value={otpCode}
                           onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (otpCode.length === 6 && !isVerifyingOtp) {
+                                handleVerifyOtp();
+                              }
+                            }
+                          }}
                           placeholder="••••••"
+                          autoFocus
                           className="flex-1 px-3 py-2 bg-white border border-amber-300 rounded-xl text-center text-sm font-mono font-bold tracking-widest text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#9D0208]"
                         />
                         <button
