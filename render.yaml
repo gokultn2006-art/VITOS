@@ -19,10 +19,11 @@ services:
         sync: false
 
   # 2. React Vite Frontend
-  - type: static
+  - type: web
+    runtime: static
     name: vitos-frontend
     buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
+    publishPath: frontend/dist
     routes:
       - type: rewrite
         source: /*
