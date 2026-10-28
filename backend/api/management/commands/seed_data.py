@@ -108,4 +108,11 @@ class Command(BaseCommand):
             }
         )
 
+        # Automatically seed full VIT Vellore Campus Directory (152+ verified locations & buildings)
+        try:
+            from django.core.management import call_command
+            call_command('seed_vit_directory')
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f'Could not seed directory: {e}'))
+
         self.stdout.write(self.style.SUCCESS('Successfully seeded database with multi-user VIT records!'))

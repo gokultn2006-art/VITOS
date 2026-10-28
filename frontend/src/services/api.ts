@@ -243,7 +243,10 @@ export const locationService = {
   async getAll(): Promise<CampusLocation[]> {
     try {
       const res = await api.get('/locations/');
-      return res.data;
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        return res.data;
+      }
+      return campusLocations;
     } catch {
       return campusLocations;
     }
@@ -262,7 +265,10 @@ export const classroomService = {
   async getAvailable(): Promise<Room[]> {
     try {
       const res = await api.get('/classrooms/available/');
-      return res.data;
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        return res.data;
+      }
+      return emptyClassrooms;
     } catch {
       return emptyClassrooms;
     }
@@ -373,7 +379,10 @@ export const directoryService = {
   async getEntries(params?: { category?: string; parent?: number | string | null; type?: string; search?: string }): Promise<DirectoryEntry[]> {
     try {
       const res = await api.get('/directory/', { params });
-      return res.data;
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        return res.data;
+      }
+      return directoryEntries;
     } catch {
       return directoryEntries;
     }

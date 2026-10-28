@@ -4,7 +4,7 @@ services:
     name: vitos-backend
     runtime: python
     plan: free
-    buildCommand: pip install -r backend/requirements.txt && python backend/manage.py migrate --noinput && python backend/manage.py seed_data && python backend/manage.py collectstatic --noinput
+    buildCommand: pip install -r backend/requirements.txt && python backend/manage.py migrate --noinput && python backend/manage.py seed_data && python backend/manage.py seed_vit_directory && python backend/manage.py collectstatic --noinput
     startCommand: gunicorn vitos_backend.wsgi:application --chdir backend --bind 0.0.0.0:$PORT
     envVars:
       - key: DEBUG
