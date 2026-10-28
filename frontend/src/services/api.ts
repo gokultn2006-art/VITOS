@@ -115,7 +115,7 @@ export const authService = {
     }
   },
 
-  async sendOtp(email: string): Promise<{ message: string; email: string }> {
+  async sendOtp(email: string): Promise<{ message: string; email: string; otp?: string }> {
     const res = await api.post('/auth/send-otp/', { email }, { timeout: 30000 });
     return res.data;
   },

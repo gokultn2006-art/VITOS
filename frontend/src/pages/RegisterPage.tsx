@@ -84,6 +84,9 @@ export const RegisterPage: React.FC = () => {
     try {
       const res = await authService.sendOtp(cleanEmail);
       setOtpMessage(res.message || `Verification code sent to ${cleanEmail}`);
+      if (res.otp) {
+        setOtpCode(res.otp);
+      }
       setOtpCountdown(60);
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message;

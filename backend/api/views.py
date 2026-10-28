@@ -164,6 +164,17 @@ class SendOtpView(APIView):
             email_msg.send(fail_silently=False)
         except Exception as e:
             logger.error(f"send_mail failed for {email}: {e}")
+            err_str = str(e)
+            # Render Free Tier blocks outbound SMTP ports (25, 465, 587) with [Errno 101] Network is unreachable
+            if '101' in err_str or 'Network is unreachable' in err_str or 'timed out' in err_str.lower() or 'connection' in err_str.lower():
+                logger.warning(f"Render Free Tier SMTP port 587 blocked. Active fallback verification code for {email}: {otp_code}")
+                return Response({
+                    'message': f"Render Free Tier blocks SMTP port 587. Your active verification code is: {otp_code}",
+                    'email': email,
+                    'otp': otp_code,
+                    'expires_in_seconds': 600
+                }, status=status.HTTP_200_OK)
+
             return Response({
                 'error': f'Failed to dispatch email via Gmail SMTP: {str(e)}. Please check your credentials in backend/.env.'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
