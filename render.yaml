@@ -31,7 +31,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: vitos-backend
-          property: url
+        sync: false
