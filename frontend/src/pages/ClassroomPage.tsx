@@ -13,7 +13,7 @@ export const ClassroomPage: React.FC = () => {
   const [selectedBlock, setSelectedBlock] = useState<string>('all');
   const [minCapacity, setMinCapacity] = useState<number>(0);
   const [statusFilter, setStatusFilter] = useState<string>('available');
-  const [userCoords] = useState({ lat: 12.9718, lng: 79.1633 }); // SJT Current Location
+  const [userCoords] = useState({ lat: 12.97095, lng: 79.16390 }); // SJT Current Location
 
   // Calculate distance for each classroom and sort by proximity
   const roomsWithDistance = emptyClassrooms.map((room) => {

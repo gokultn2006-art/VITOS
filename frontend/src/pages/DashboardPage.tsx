@@ -287,8 +287,8 @@ export const DashboardPage: React.FC = () => {
   }, []);
 
   // GPS
-  const [userLat, setUserLat] = useState(12.9718);
-  const [userLng, setUserLng] = useState(79.1633);
+  const [userLat, setUserLat] = useState(12.97095);
+  const [userLng, setUserLng] = useState(79.16390);
   const [locationName, setLocationName] = useState('VIT Campus');
   const [locatingGPS, setLocatingGPS] = useState(() => typeof navigator !== 'undefined' && Boolean(navigator.geolocation));
 
@@ -396,12 +396,12 @@ export const DashboardPage: React.FC = () => {
     return list;
   }, [currentClass, nextClass, userLat, userLng, backendNotifications]);
 
-  // ── quick services ─────────────────────────────────────────────────────────
+  // ── quick services (Exact OpenStreetMap campus coordinates) ─────────────
   const quickServices = [
-    { name: 'Medical Centre',  code: 'MED',      icon: Activity,   bg: 'bg-emerald-50 text-emerald-700', lat: 12.9705, lng: 79.1622 },
-    { name: 'Central Library', code: 'LIB',      icon: BookOpen,   bg: 'bg-blue-50 text-blue-700',       lat: 12.9712, lng: 79.1625 },
-    { name: 'Printing Centre', code: 'PRINT_TT', icon: Printer,    bg: 'bg-purple-50 text-purple-700',   lat: 12.9720, lng: 79.1638 },
-    { name: 'ATMs & Bank',     code: 'ATM_MB',   icon: CreditCard, bg: 'bg-amber-50 text-amber-700',     lat: 12.9715, lng: 79.1630 },
+    { name: 'Medical Centre',  code: 'MED',      icon: Activity,   bg: 'bg-emerald-50 text-emerald-700', lat: 12.96953, lng: 79.15465 },
+    { name: 'Central Library', code: 'LIB',      icon: BookOpen,   bg: 'bg-blue-50 text-blue-700',       lat: 12.96933, lng: 79.15685 },
+    { name: 'Printing Centre', code: 'PRINT_TT', icon: Printer,    bg: 'bg-purple-50 text-purple-700',   lat: 12.97061, lng: 79.15951 },
+    { name: 'ATMs & Bank',     code: 'ATM_MB',   icon: CreditCard, bg: 'bg-amber-50 text-amber-700',     lat: 12.96975, lng: 79.15519 },
   ];
 
   const handleNavigate = (venue: string) =>

@@ -14,20 +14,55 @@ import {
   Navigation,
   ChevronDown,
   ChevronUp,
-  Sparkles
+  Sparkles,
+  Layers
 } from 'lucide-react';
 import { directoryService, navigationService } from '../services/api';
 import type { DirectoryEntry, NavigationPoint, NavigationState, NavigationRouteResult } from '../types';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 
-// VIT Vellore Campus Reference Center Coordinates
-const VIT_VELLORE_CENTER: [number, number] = [12.9692, 79.1560];
+// VIT Vellore Campus Reference Center Coordinates (Technology Tower / Central Campus)
+const VIT_VELLORE_CENTER: [number, number] = [12.97061, 79.15951];
 
 // Maximum visible geographic working area (~campus extent)
 const VIT_WORKING_BOUNDS: L.LatLngBoundsLiteral = [
   [12.956, 79.140], // South-West coordinate
   [12.982, 79.172], // North-East coordinate
+];
+
+interface CampusLandmark {
+  id: string;
+  name: string;
+  code: string;
+  category: 'academic' | 'facility' | 'hostel' | 'dining' | 'gate' | 'sports';
+  lat: number;
+  lng: number;
+  icon: string;
+  color: string;
+}
+
+// Verified OpenStreetMap Campus Landmark Coordinates
+const CAMPUS_LANDMARKS: CampusLandmark[] = [
+  { id: 'tt', name: 'Technology Tower (TT)', code: 'TT', category: 'academic', lat: 12.97061, lng: 79.15951, icon: '🏛️', color: '#9D0208' },
+  { id: 'sjt', name: 'Silver Jubilee Tower (SJT)', code: 'SJT', category: 'academic', lat: 12.97095, lng: 79.16390, icon: '🏢', color: '#9D0208' },
+  { id: 'prp', name: 'Pearl Research Park (PRP)', code: 'PRP', category: 'academic', lat: 12.97125, lng: 79.16628, icon: '🔬', color: '#9D0208' },
+  { id: 'mb', name: 'Dr. M.G.R. Block (Main Building)', code: 'MB', category: 'academic', lat: 12.96925, lng: 79.15585, icon: '🏛️', color: '#6A040F' },
+  { id: 'gdn', name: 'G.D. Naidu Block (GDN)', code: 'GDN', category: 'academic', lat: 12.96998, lng: 79.15484, icon: '⚡', color: '#9D0208' },
+  { id: 'cdmm', name: 'CDMM Building (SCE)', code: 'CDMM', category: 'academic', lat: 12.96922, lng: 79.15498, icon: '🏗️', color: '#9D0208' },
+  { id: 'smv', name: 'Sir M. Visvesvaraya Block (SMV)', code: 'SMV', category: 'academic', lat: 12.96924, lng: 79.15773, icon: '⚙️', color: '#9D0208' },
+  { id: 'lib', name: 'Periyar E.V.R. Central Library', code: 'LIB', category: 'facility', lat: 12.96933, lng: 79.15685, icon: '📚', color: '#1D4ED8' },
+  { id: 'med', name: 'VIT Health & Medical Centre', code: 'MED', category: 'facility', lat: 12.96953, lng: 79.15465, icon: '🏥', color: '#047857' },
+  { id: 'fc', name: 'Central Food Court (Darling / Gazebo)', code: 'FC', category: 'dining', lat: 12.97005, lng: 79.15897, icon: '☕', color: '#D97706' },
+  { id: 'fm', name: 'VIT Food Mall (North Campus)', code: 'FM', category: 'dining', lat: 12.97253, lng: 79.16222, icon: '🍔', color: '#D97706' },
+  { id: 'gate1', name: 'VIT Main Gate (Katpadi Road)', code: 'GATE 1', category: 'gate', lat: 12.96835, lng: 79.15568, icon: '🚪', color: '#475569' },
+  { id: 'gate3', name: 'VIT Gate 3 (SJT / PRP)', code: 'GATE 3', category: 'gate', lat: 12.97148, lng: 79.16322, icon: '🚪', color: '#475569' },
+  { id: 'mh', name: "Men's Hostels (MH Quad)", code: 'MH', category: 'hostel', lat: 12.97330, lng: 79.15880, icon: '🏠', color: '#0284C7' },
+  { id: 'lh', name: "Ladies' Hostels Enclave (LH)", code: 'LH', category: 'hostel', lat: 12.96810, lng: 79.15880, icon: '🌸', color: '#BE185D' },
+  { id: 'stad', name: 'Outdoor Athletics Stadium', code: 'STADIUM', category: 'sports', lat: 12.97604, lng: 79.16010, icon: '🏃', color: '#15803D' },
+  { id: 'indoor', name: "Men's Hostel Indoor Stadium", code: 'INDOOR', category: 'sports', lat: 12.97209, lng: 79.15912, icon: '🏸', color: '#15803D' },
+  { id: 'pool', name: 'MH Olympic Swimming Pool', code: 'POOL', category: 'sports', lat: 12.97445, lng: 79.16087, icon: '🏊', color: '#0EA5E9' },
+  { id: 'anna', name: 'Anna Auditorium', code: 'ANNA AUDI', category: 'facility', lat: 12.96998, lng: 79.15564, icon: '🎭', color: '#7C3AED' },
 ];
 
 const INITIAL_ZOOM = 16;
@@ -44,6 +79,8 @@ export const MapPage: React.FC = () => {
   const watchIdRef = useRef<number | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const userAccuracyCircleRef = useRef<L.Circle | null>(null);
+  const landmarksLayerRef = useRef<L.LayerGroup | null>(null);
+  const [showLandmarks, setShowLandmarks] = useState<boolean>(true);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -347,6 +384,94 @@ export const MapPage: React.FC = () => {
       }
     };
   }, []);
+
+  // Render Campus Landmark POI Layer (Verified OpenStreetMap Buildings & Venues)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (!landmarksLayerRef.current) {
+      landmarksLayerRef.current = L.layerGroup().addTo(map);
+    }
+
+    landmarksLayerRef.current.clearLayers();
+
+    if (showLandmarks) {
+      CAMPUS_LANDMARKS.forEach((lm) => {
+        const iconHtml = `
+          <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); transition: transform 0.15s ease;">
+            <div style="background: ${lm.color}; color: white; padding: 2.5px 7px; border-radius: 9999px; font-weight: 800; font-size: 10px; white-space: nowrap; border: 1.5px solid white; display: flex; align-items: center; gap: 3.5px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
+              <span style="font-size: 11px;">${lm.icon}</span>
+              <span>${lm.code}</span>
+            </div>
+            <div style="width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid ${lm.color};"></div>
+          </div>
+        `;
+
+        const icon = L.divIcon({
+          className: 'campus-landmark-marker',
+          html: iconHtml,
+          iconSize: [80, 28],
+          iconAnchor: [40, 28],
+        });
+
+        const marker = L.marker([lm.lat, lm.lng], { icon });
+
+        marker.bindPopup(`
+          <div style="font-size: 12px; padding: 4px; min-width: 190px; text-align: center;">
+            <div style="font-size: 13px; font-weight: 800; color: #03071E; margin-bottom: 2px;">
+              ${lm.icon} ${lm.name}
+            </div>
+            <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #64748B; margin-bottom: 8px;">
+              ${lm.category} · ${lm.lat.toFixed(5)}, ${lm.lng.toFixed(5)}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <button class="lm-set-start-btn" style="background: #059669; color: white; border: none; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                📍 Set as Starting Location
+              </button>
+              <button class="lm-set-target-btn" style="background: #9D0208; color: white; border: none; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                🎯 Set as Target Location
+              </button>
+            </div>
+          </div>
+        `);
+
+        marker.on('popupopen', (e) => {
+          const container = e.popup.getElement();
+          if (container) {
+            const btnStart = container.querySelector('.lm-set-start-btn');
+            const btnTarget = container.querySelector('.lm-set-target-btn');
+            btnStart?.addEventListener('click', () => {
+              setNavState((prev) => ({
+                ...prev,
+                origin: {
+                  type: 'directory',
+                  name: lm.name,
+                  latitude: lm.lat,
+                  longitude: lm.lng,
+                },
+              }));
+              map.closePopup();
+            });
+            btnTarget?.addEventListener('click', () => {
+              setNavState((prev) => ({
+                ...prev,
+                destination: {
+                  type: 'directory',
+                  name: lm.name,
+                  latitude: lm.lat,
+                  longitude: lm.lng,
+                },
+              }));
+              map.closePopup();
+            });
+          }
+        });
+
+        landmarksLayerRef.current?.addLayer(marker);
+      });
+    }
+  }, [showLandmarks]);
 
   // Map Click Listener for interactive Starting Location / Target Location setting
   useEffect(() => {
@@ -799,6 +924,16 @@ export const MapPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Toggle Landmarks Layer */}
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Layers className={`w-4 h-4 ${showLandmarks ? 'text-[#9D0208]' : 'text-stone-400'}`} />}
+              onClick={() => setShowLandmarks((prev) => !prev)}
+            >
+              {showLandmarks ? 'Landmarks: On' : 'Landmarks: Off'}
+            </Button>
+
             {/* Locate Me Button */}
             <Button
               variant="ghost"

@@ -687,30 +687,30 @@ function generateFallbackAiResponse(query: string): ChatMessage {
 
   // 1. ACADEMIC BLOCKS & DEPARTMENTS
   if (q.includes('academic block') || q.includes('academic blocks') || q.includes('all blocks') || q.includes('campus blocks') || q.includes('list of blocks') || (q.includes('academic') && q.includes('block'))) {
-    const ttUrl = '/map?destName=Technology%20Tower&lat=12.97120&lng=79.15930';
-    const sjtUrl = '/map?destName=Silver%20Jubilee%20Tower&lat=12.97180&lng=79.16300';
-    const prpUrl = '/map?destName=Pearl%20Research%20Park&lat=12.97350&lng=79.16420';
+    const ttUrl = '/map?destName=Technology%20Tower&lat=12.97061&lng=79.15951';
+    const sjtUrl = '/map?destName=Silver%20Jubilee%20Tower&lat=12.97095&lng=79.16390';
+    const prpUrl = '/map?destName=Pearl%20Research%20Park&lat=12.97125&lng=79.16628';
 
     text = "🏛️ **VIT Vellore Academic Blocks & Zones:**\n\n" +
            "### 1. Central Academic Zone\n" +
-           "- **[📍 Technology Tower (TT)](/map?destName=Technology%20Tower&lat=12.97120&lng=79.15930)**: SELECT (Electrical), SENSE (Electronics), SAS (Advanced Sciences), Placement Cell, Dean Offices.\n" +
-           "- **[📍 GD Naidu Block (GDN)](/map?destName=GD%20Naidu%20Block&lat=12.97020&lng=79.16010)**: SMEC (Mechanical), Civil Engineering, workshop bays, thermal labs.\n" +
-           "- **[📍 Sir M. Visvesvaraya Block (SMV)](/map?destName=Sir%20M%20Visvesvaraya%20Block&lat=12.97080&lng=79.15980)**: SCHEME (Chemical Engineering) & instrumentation suites.\n" +
-           "- **[📍 Periyar Central Library](/map?destName=Periyar%20EVR%20Central%20Library&lat=12.96990&lng=79.15780)**: 6-floor research library with digital suites.\n\n" +
+           "- **[📍 Technology Tower (TT)](/map?destName=Technology%20Tower&lat=12.97061&lng=79.15951)**: SELECT (Electrical), SENSE (Electronics), SAS (Advanced Sciences), Placement Cell, Dean Offices.\n" +
+           "- **[📍 GD Naidu Block (GDN)](/map?destName=GD%20Naidu%20Block&lat=12.96998&lng=79.15484)**: SMEC (Mechanical), Civil Engineering, workshop bays, thermal labs.\n" +
+           "- **[📍 Sir M. Visvesvaraya Block (SMV)](/map?destName=Sir%20M%20Visvesvaraya%20Block&lat=12.96924&lng=79.15773)**: SCHEME (Chemical Engineering) & instrumentation suites.\n" +
+           "- **[📍 Periyar Central Library](/map?destName=Periyar%20EVR%20Central%20Library&lat=12.96933&lng=79.15685)**: 6-floor research library with digital suites.\n\n" +
            "### 2. Eastern Tech & Research Zone\n" +
-           "- **[📍 Silver Jubilee Tower (SJT)](/map?destName=Silver%20Jubilee%20Tower&lat=12.97180&lng=79.16300)**: SCOPE (Computer Science), SITE (Information Tech), SCORE (Software Systems), AI labs & smart lecture halls.\n" +
-           "- **[📍 Pearl Research Park (PRP)](/map?destName=Pearl%20Research%20Park&lat=12.97350&lng=79.16420)**: Advanced PG & PhD research complex, sponsored industry centers.\n" +
-           "- **[📍 CDMM Building](/map?destName=CDMM%20Building&lat=12.97100&lng=79.16200)**: Centre for Disaster Mitigation & Management.\n" +
+           "- **[📍 Silver Jubilee Tower (SJT)](/map?destName=Silver%20Jubilee%20Tower&lat=12.97095&lng=79.16390)**: SCOPE (Computer Science), SITE (Information Tech), SCORE (Software Systems), AI labs & smart lecture halls.\n" +
+           "- **[📍 Pearl Research Park (PRP)](/map?destName=Pearl%20Research%20Park&lat=12.97125&lng=79.16628)**: Advanced PG & PhD research complex, sponsored industry centers.\n" +
+           "- **[📍 CDMM Building](/map?destName=CDMM%20Building&lat=12.96922&lng=79.15498)**: Centre for Disaster Mitigation & Management.\n" +
            "- **[📍 CBMR](/map?destName=CBMR&lat=12.97280&lng=79.16250)**: Centre for Biomaterials & Research, biotechnology labs.\n\n" +
            "### 3. Western Administrative & Academic Zone\n" +
-           "- **[📍 Dr. M.G.R. Block (Main Building)](/map?destName=Main%20Building&lat=12.96960&lng=79.15590)**: Central administration, Chancellor/Registrar, SSL.\n" +
-           "- **[📍 Gandhi Block](/map?destName=Gandhi%20Block&lat=12.96980&lng=79.15680)**: VIT Business School (VITBS).\n" +
-           "- **[📍 Allana Block (ALM)](/map?destName=Allana%20Block&lat=12.96820&lng=79.15520)**: V-SPARC Architecture studios.";
+           "- **[📍 Dr. M.G.R. Block (Main Building)](/map?destName=Main%20Building&lat=12.96925&lng=79.15585)**: Central administration, Chancellor/Registrar, SSL.\n" +
+           "- **[📍 Gandhi Block](/map?destName=Gandhi%20Block&lat=12.96982&lng=79.15680)**: VIT Business School (VITBS).\n" +
+           "- **[📍 Allana Block (ALM)](/map?destName=Allana%20Block&lat=12.96953&lng=79.15465)**: Health Centre and academic services.";
 
     suggestedLocations = [
-      { id: 'bld_tt', name: 'Technology Tower (TT)', category: 'Academic Building', latitude: 12.9712, longitude: 79.1593 },
-      { id: 'bld_sjt', name: 'Silver Jubilee Tower (SJT)', category: 'Academic Building', latitude: 12.9718, longitude: 79.1630 },
-      { id: 'bld_prp', name: 'Pearl Research Park (PRP)', category: 'Research Park', latitude: 12.9735, longitude: 79.1642 },
+      { id: 'bld_tt', name: 'Technology Tower (TT)', category: 'Academic Building', latitude: 12.97061, longitude: 79.15951 },
+      { id: 'bld_sjt', name: 'Silver Jubilee Tower (SJT)', category: 'Academic Building', latitude: 12.97095, longitude: 79.16390 },
+      { id: 'bld_prp', name: 'Pearl Research Park (PRP)', category: 'Research Park', latitude: 12.97125, longitude: 79.16628 },
     ];
     quickActions = [
       { label: 'Navigate to TT', action: 'navigate', payload: ttUrl },
@@ -722,17 +722,17 @@ function generateFallbackAiResponse(query: string): ChatMessage {
 
   // 2. PEARL RESEARCH PARK (PRP) / HOW TO REACH PRP
   else if (q.includes('prp') || q.includes('pearl research') || (q.includes('reach') && q.includes('prp'))) {
-    const prpUrl = '/map?destName=Pearl%20Research%20Park&lat=12.97350&lng=79.16420';
+    const prpUrl = '/map?destName=Pearl%20Research%20Park&lat=12.97125&lng=79.16628';
     text = "🔬 **Pearl Research Park (PRP Block):**\n\n" +
            "Pearl Research Park is VIT's premier 8-storey advanced research and postgraduate facility.\n\n" +
            "📍 **Location & How to Reach:**\n" +
            "- **Zone**: Eastern Research Zone of campus.\n" +
-           "- **From Silver Jubilee Tower (SJT)**: Walk northeast past CDMM and CBMR (~3 mins walk, 250m).\n" +
-           "- **From Men's Hostels (MH)**: PRP is located right next to **MH-G, MH-H, MH-Q, and MH-R** blocks (~2-3 mins walk).\n" +
-           "- **From Central Library / TT**: Walk east through the main walkway past Food Mall and SJT (~8-10 mins walk, 600m).\n\n" +
+           "- **From Silver Jubilee Tower (SJT)**: Walk through the PRP/SJT pedestrian subway (~3 mins walk, 250m).\n" +
+           "- **From Men's Hostels (MH)**: PRP is located right next to **MH-S, MH-T, MH-P, and MH-Q** blocks (~2-3 mins walk).\n" +
+           "- **From Central Library / TT**: Walk east through the main walkway past Food Mall and SJT (~8-10 mins walk, 650m).\n\n" +
            `🗺️ **[📍 Start Walking Directions to PRP on Navigation Map](${prpUrl})**`;
 
-    suggestedLocations = [{ id: 'bld_prp', name: 'Pearl Research Park (PRP)', category: 'Research Park', latitude: 12.9735, longitude: 79.1642, building: 'Pearl Research Park' }];
+    suggestedLocations = [{ id: 'bld_prp', name: 'Pearl Research Park (PRP)', category: 'Research Park', latitude: 12.97125, longitude: 79.16628, building: 'Pearl Research Park' }];
     quickActions = [
       { label: 'Start Route to PRP', action: 'navigate', payload: prpUrl },
       { label: 'Open Navigation Map', action: 'route', payload: '/map' }
@@ -747,7 +747,7 @@ function generateFallbackAiResponse(query: string): ChatMessage {
     const isLibrary = q.includes('library') || q.includes('food mall') || q.includes('lh');
 
     if (isSjt) {
-      const sjtUrl = '/map?destName=SJT%20Ground%20Floor%20Xerox%20%26%20Stationery&lat=12.97180&lng=79.16300';
+      const sjtUrl = '/map?destName=SJT%20Ground%20Floor%20Xerox%20%26%20Stationery&lat=12.97095&lng=79.16390';
       text = "🖨️ Since you are near **SJT / Men's Hostels (MH-A to MH-D)**, the optimal printing shop is:\n\n" +
              "👉 **SJT Ground Floor Xerox & Stationery**\n" +
              "- **Location**: SJT Ground Floor SCOPE Lobby\n" +
@@ -755,13 +755,13 @@ function generateFallbackAiResponse(query: string): ChatMessage {
              "- **Hours**: 08:00 AM - 08:30 PM\n" +
              "- **Services**: B&W and color assignment printing, photocopying, spiral binding, stationery\n\n" +
              `🗺️ **[📍 Open in Navigation Map](${sjtUrl})** to start walking directions!`;
-      suggestedLocations = [{ id: 'print_sjt', name: 'SJT Ground Floor Xerox', category: 'Printing & Xerox', latitude: 12.9718, longitude: 79.1630, building: 'Silver Jubilee Tower' }];
+      suggestedLocations = [{ id: 'print_sjt', name: 'SJT Ground Floor Xerox', category: 'Printing & Xerox', latitude: 12.97095, longitude: 79.16390, building: 'Silver Jubilee Tower' }];
       quickActions = [
         { label: 'Navigate to SJT Print', action: 'navigate', payload: sjtUrl },
         { label: 'Open Navigation Map', action: 'route', payload: '/map' }
       ];
     } else if (isTt) {
-      const ttUrl = '/map?destName=TT%20Express%20Printing%20%26%20Binding%20Cell&lat=12.97120&lng=79.15930';
+      const ttUrl = '/map?destName=TT%20Express%20Printing%20%26%20Binding%20Cell&lat=12.97061&lng=79.15951';
       text = "🖨️ Since you are near **TT / GDN / Main Building**, the optimal printing shop is:\n\n" +
              "👉 **TT Express Printing & Binding Cell**\n" +
              "- **Location**: Technology Tower Ground Floor Room 004\n" +
@@ -769,50 +769,50 @@ function generateFallbackAiResponse(query: string): ChatMessage {
              "- **Hours**: 08:30 AM - 07:00 PM\n" +
              "- **Services**: High-speed laser printing, plotters for engineering CAD drawings, thesis hard binding\n\n" +
              `🗺️ **[📍 Open in Navigation Map](${ttUrl})** to start walking directions!`;
-      suggestedLocations = [{ id: 'print_tt', name: 'TT Express Printing (TT-004)', category: 'Printing & Xerox', latitude: 12.9712, longitude: 79.1593, building: 'Technology Tower' }];
+      suggestedLocations = [{ id: 'print_tt', name: 'TT Express Printing (TT-004)', category: 'Printing & Xerox', latitude: 12.97061, longitude: 79.15951, building: 'Technology Tower' }];
       quickActions = [
         { label: 'Navigate to TT Print', action: 'navigate', payload: ttUrl },
         { label: 'Open Navigation Map', action: 'route', payload: '/map' }
       ];
     } else if (isPrp) {
-      const prpUrl = '/map?destName=PRP%20Photocopy%20%26%20Document%20Cell&lat=12.97350&lng=79.16420';
+      const prpUrl = '/map?destName=PRP%20Photocopy%20%26%20Document%20Cell&lat=12.97125&lng=79.16628';
       text = "🖨️ Since you are near **Pearl Research Park / MH-G to MH-T**, the optimal printing shop is:\n\n" +
              "👉 **PRP Photocopy & Document Cell**\n" +
              "- **Location**: Pearl Research Park (PRP Block) Ground Floor\n" +
              "- **Hours**: 09:00 AM - 06:00 PM\n" +
              "- **Services**: Research poster printing, project printouts, spiral binding\n\n" +
              `🗺️ **[📍 Open in Navigation Map](${prpUrl})**`;
-      suggestedLocations = [{ id: 'print_prp', name: 'PRP Photocopy Cell', category: 'Printing & Xerox', latitude: 12.9735, longitude: 79.1642, building: 'Pearl Research Park' }];
+      suggestedLocations = [{ id: 'print_prp', name: 'PRP Photocopy Cell', category: 'Printing & Xerox', latitude: 12.97125, longitude: 79.16628, building: 'Pearl Research Park' }];
       quickActions = [{ label: 'Navigate to PRP Print', action: 'navigate', payload: prpUrl }];
     } else if (isLibrary) {
-      const fmUrl = '/map?destName=Food%20Mall%20First%20Floor%20Printing%20Centre&lat=12.97050&lng=79.15720';
+      const fmUrl = '/map?destName=Food%20Mall%20First%20Floor%20Printing%20Centre&lat=12.97253&lng=79.16222';
       text = "🖨️ Since you are near **Central Library / Food Mall / Ladies' Hostels**, the optimal printing shop is:\n\n" +
              "👉 **Food Mall First Floor Printing Centre**\n" +
-             "- **Location**: Central Food Mall 1st Floor near Library Junction\n" +
+             "- **Location**: Food Mall near SJT / Hostels\n" +
              "- **Hours**: 08:30 AM - 09:30 PM\n" +
              "- **Services**: Record sheet copying, assignment printouts, project binding\n\n" +
              `🗺️ **[📍 Open in Navigation Map](${fmUrl})**`;
-      suggestedLocations = [{ id: 'print_fm', name: 'Food Mall Printing Centre', category: 'Printing & Xerox', latitude: 12.9705, longitude: 79.1572, building: 'Food Mall' }];
+      suggestedLocations = [{ id: 'print_fm', name: 'Food Mall Printing Centre', category: 'Printing & Xerox', latitude: 12.97253, longitude: 79.16222, building: 'Food Mall' }];
       quickActions = [{ label: 'Navigate to Food Mall Print', action: 'navigate', payload: fmUrl }];
     } else {
-      const ttUrl = '/map?destName=TT%20Express%20Printing%20%26%20Binding%20Cell&lat=12.97120&lng=79.15930';
-      const sjtUrl = '/map?destName=SJT%20Ground%20Floor%20Xerox%20%26%20Stationery&lat=12.97180&lng=79.16300';
-      const fmUrl = '/map?destName=Food%20Mall%20First%20Floor%20Printing%20Centre&lat=12.97050&lng=79.15720';
-      const prpUrl = '/map?destName=PRP%20Photocopy%20%26%20Document%20Cell&lat=12.97350&lng=79.16420';
+      const ttUrl = '/map?destName=TT%20Express%20Printing%20%26%20Binding%20Cell&lat=12.97061&lng=79.15951';
+      const sjtUrl = '/map?destName=SJT%20Ground%20Floor%20Xerox%20%26%20Stationery&lat=12.97095&lng=79.16390';
+      const fmUrl = '/map?destName=Food%20Mall%20First%20Floor%20Printing%20Centre&lat=12.97253&lng=79.16222';
+      const prpUrl = '/map?destName=PRP%20Photocopy%20%26%20Document%20Cell&lat=12.97125&lng=79.16628';
 
       text = "🖨️ **Campus Printing & Xerox Shops:**\n\n" +
              "Here are the primary express printing cells at VIT Vellore:\n" +
              `1. **[TT Express Printing (TT-004)](${ttUrl})** — Best near **TT, SMV, GDN, Main Building**\n` +
              `2. **[SJT Ground Floor Xerox](${sjtUrl})** — Best near **SJT, CBMR, CDMM, MH-A to MH-F**\n` +
-             `3. **[Food Mall Printing Centre](${fmUrl})** — Best near **Central Library & Ladies' Hostels**\n` +
+             `3. **[Food Mall Printing Centre](${fmUrl})** — Best near **North Campus Food Mall & Hostels**\n` +
              `4. **[PRP Document Cell](${prpUrl})** — Best near **PRP Block & Men's Hostels MH-G to MH-T**\n\n` +
              "📍 **Which block or hostel are you currently close to?**\n" +
              "Tap a button below or tell me your location so I can calculate your closest printer!";
 
       suggestedLocations = [
-        { id: 'print_tt', name: 'TT Express Printing (TT-004)', category: 'Printing & Xerox', latitude: 12.9712, longitude: 79.1593, building: 'Technology Tower' },
-        { id: 'print_sjt', name: 'SJT Ground Floor Xerox', category: 'Printing & Xerox', latitude: 12.9718, longitude: 79.1630, building: 'Silver Jubilee Tower' },
-        { id: 'print_fm', name: 'Food Mall Printing Centre', category: 'Printing & Xerox', latitude: 12.9705, longitude: 79.1572, building: 'Food Mall' },
+        { id: 'print_tt', name: 'TT Express Printing (TT-004)', category: 'Printing & Xerox', latitude: 12.97061, longitude: 79.15951, building: 'Technology Tower' },
+        { id: 'print_sjt', name: 'SJT Ground Floor Xerox', category: 'Printing & Xerox', latitude: 12.97095, longitude: 79.16390, building: 'Silver Jubilee Tower' },
+        { id: 'print_fm', name: 'Food Mall Printing Centre', category: 'Printing & Xerox', latitude: 12.97253, longitude: 79.16222, building: 'Food Mall' },
       ];
 
       quickActions = [
@@ -848,12 +848,11 @@ function generateFallbackAiResponse(query: string): ChatMessage {
 
   // 5. FOOD / CANTEENS / DINING
   else if (q.includes('food') || q.includes('canteen') || q.includes('eat') || q.includes('lunch') || q.includes('dinner') || q.includes('breakfast') || q.includes('darling') || q.includes('woodys') || q.includes('gazebo')) {
-    const fmUrl = '/map?destName=Central%20Food%20Mall&lat=12.97050&lng=79.15720';
+    const fmUrl = '/map?destName=Food%20Mall&lat=12.97253&lng=79.16222';
     text = "🍔 **Dining Hubs & Food Courts at VIT Vellore:**\n\n" +
-           "- **[📍 Central Food Mall](/map?destName=Central%20Food%20Mall&lat=12.97050&lng=79.15720)**: Domino's Pizza, DC, fresh juice bars, bakery, and multicuisine cafeteria.\n" +
-           "- **[📍 SJT Food Court](/map?destName=Silver%20Jubilee%20Tower&lat=12.97180&lng=79.16300)**: Quick lunch boxes, sandwiches, fresh juice, and coffee.\n" +
-           "- **Darling Food Court**: Multi-cuisine Indian fast food and snacks near Main Building.\n" +
-           "- **Gazebo**: Open-air student cafe near Main Building circle.\n" +
+           "- **[📍 Food Mall (North Campus)](/map?destName=Food%20Mall&lat=12.97253&lng=79.16222)**: Domino's Pizza, DC, fresh juice bars, bakery, and multicuisine cafeteria near SJT.\n" +
+           "- **[📍 Central Food Court (Darling / Gazebo)](/map?destName=Central%20Food%20Court&lat=12.97005&lng=79.15897)**: Open-air student dining plaza between TT and Library.\n" +
+           "- **[📍 SJT Food Court](/map?destName=Silver%20Jubilee%20Tower&lat=12.97095&lng=79.16390)**: Quick lunch boxes, sandwiches, fresh juice, and coffee on SJT Ground Floor.\n" +
            "- **Hostel Night Canteens**: Located in MH and LH blocks, open until 12:30 AM for midnight snacks.";
 
     quickActions = [
@@ -864,39 +863,40 @@ function generateFallbackAiResponse(query: string): ChatMessage {
 
   // 6. ATMS & BANKING
   else if (q.includes('atm') || q.includes('bank') || q.includes('cash') || q.includes('sbi') || q.includes('indian bank')) {
-    const sbiUrl = '/map?destName=SBI%20Bank%20%26%20ATM&lat=12.96980&lng=79.15650';
+    const bankUrl = '/map?destName=Indian%20Bank%20Branch&lat=12.96994&lng=79.15434';
     text = "🏧 **Banking & ATMs on Campus:**\n\n" +
-           "- **[📍 State Bank of India (SBI) & ATM](/map?destName=SBI%20Bank%20%26%20ATM&lat=12.96980&lng=79.15650)**: Full-service bank branch & 4 ATMs near Main Building.\n" +
-           "- **[📍 Indian Bank & ATM](/map?destName=Indian%20Bank%20%26%20ATM&lat=12.97120&lng=79.15930)**: Located under Technology Tower (TT) arcade.\n" +
-           "- **Hostel ATMs**: Indian Bank ATMs located near Men's Hostel MH-D and LH Main Gate.";
+           "- **[📍 Indian Bank Campus Branch & ATM](/map?destName=Indian%20Bank%20Branch&lat=12.96994&lng=79.15434)**: Full-service bank branch & ATMs near Main Gate / Health Centre.\n" +
+           "- **[📍 HDFC Bank ATM Hub](/map?destName=HDFC%20Bank%20ATM&lat=12.96975&lng=79.15519)**: Located at Main Building Quadrangle.\n" +
+           "- **[📍 SJT Plaza Indian Bank ATM](/map?destName=Indian%20Bank%20ATM&lat=12.97148&lng=79.16322)**: ATM near Silver Jubilee Tower plaza.\n" +
+           "- **[📍 Men's Hostel Gate 3 ATM](/map?destName=Indian%20Bank%20ATM&lat=12.97318&lng=79.16419)**: 24/7 ATM near Gate 3 and PRP subway.";
 
     quickActions = [
-      { label: 'Navigate to SBI Branch', action: 'navigate', payload: sbiUrl },
+      { label: 'Navigate to Bank Branch', action: 'navigate', payload: bankUrl },
       { label: 'Open Navigation Map', action: 'route', payload: '/map' }
     ];
   }
 
   // 7. SPECIFIC CLASSROOM (e.g. TT-624, SJT-302)
   else if (q.includes('tt-624') || (q.includes('tt') && q.includes('624'))) {
-    const mapUrl = '/map?destName=TT-624&lat=12.97120&lng=79.15930&loc=Technology%20Tower';
+    const mapUrl = '/map?destName=TT-624&lat=12.97061&lng=79.15951&loc=Technology%20Tower';
     text = "📍 **TT-624** is located on the **6th Floor of Technology Tower (TT)**.\n\n" +
            "- **Facilities**: Dual projectors, central AC, and smart boards\n" +
            "- **Walking Distance**: ~8 mins (450m) from Central Library\n\n" +
            `🗺️ **[📍 Open in Navigation Map](${mapUrl})**`;
-    suggestedLocations = [{ id: 'tt_624', name: 'TT-624 (Technology Tower)', category: 'Academic Classroom', latitude: 12.9712, longitude: 79.1593, building: 'Technology Tower' }];
+    suggestedLocations = [{ id: 'tt_624', name: 'TT-624 (Technology Tower)', category: 'Academic Classroom', latitude: 12.97061, longitude: 79.15951, building: 'Technology Tower' }];
     quickActions = [{ label: 'Navigate to TT-624', action: 'navigate', payload: mapUrl }];
   }
 
   // 8. SJT / SILVER JUBILEE TOWER
   else if (q.includes('sjt') || q.includes('silver jubilee')) {
-    const sjtUrl = '/map?destName=Silver%20Jubilee%20Tower%20(SJT)&lat=12.97180&lng=79.16300';
+    const sjtUrl = '/map?destName=Silver%20Jubilee%20Tower%20(SJT)&lat=12.97095&lng=79.16390';
     text = "🏢 **Silver Jubilee Tower (SJT):**\n\n" +
            "SJT is the 8-storey computing and IT hub of VIT Vellore:\n" +
            "- **Schools**: SCOPE (Computer Science & Engineering), SITE (Information Tech), SCORE.\n" +
            "- **Facilities**: Smart classrooms, advanced GPU/AI research labs, faculty cabins, SJT Food Court.\n" +
            "- **Location**: Eastern Zone, 2 mins walk from Men's Hostels MH-A to MH-D.\n\n" +
            `🗺️ **[📍 Open in Navigation Map](${sjtUrl})**`;
-    suggestedLocations = [{ id: 'sjt_bld', name: 'Silver Jubilee Tower (SJT)', category: 'Academic Buildings', latitude: 12.9718, longitude: 79.1630, building: 'Silver Jubilee Tower' }];
+    suggestedLocations = [{ id: 'sjt_bld', name: 'Silver Jubilee Tower (SJT)', category: 'Academic Buildings', latitude: 12.97095, longitude: 79.16390, building: 'Silver Jubilee Tower' }];
     quickActions = [
       { label: 'Navigate to SJT', action: 'navigate', payload: sjtUrl },
       { label: 'Open Navigation Map', action: 'route', payload: '/map' }
@@ -916,10 +916,10 @@ function generateFallbackAiResponse(query: string): ChatMessage {
   // 10. TIMETABLE
   else if (q.includes('next class') || q.includes('my class')) {
     const nextClass = studentTimetable.find(t => t.isNext) || studentTimetable[0];
-    const mapUrl = `/map?destName=${encodeURIComponent(nextClass.roomNumber)}&lat=12.97120&lng=79.15930`;
+    const mapUrl = `/map?destName=${encodeURIComponent(nextClass.roomNumber)}&lat=12.97061&lng=79.15951`;
     text = `📚 Your next class is **${nextClass.courseCode} - ${nextClass.courseName}** in **${nextClass.roomNumber}** at **${nextClass.startTime}**. Walking time is approx. **${nextClass.walkingTimeMinutes} mins**.\n\n` +
            `🗺️ **[📍 Open in Navigation Map](${mapUrl})**`;
-    suggestedLocations = [{ id: 'next_room', name: nextClass.roomNumber, category: 'Classroom', latitude: 12.9712, longitude: 79.1593, building: nextClass.buildingCode }];
+    suggestedLocations = [{ id: 'next_room', name: nextClass.roomNumber, category: 'Classroom', latitude: 12.97061, longitude: 79.15951, building: nextClass.buildingCode }];
     quickActions = [{ label: `Navigate to ${nextClass.roomNumber}`, action: 'navigate', payload: mapUrl }];
   }
 

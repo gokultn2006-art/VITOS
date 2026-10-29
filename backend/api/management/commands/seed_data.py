@@ -30,19 +30,19 @@ class Command(BaseCommand):
             }
         )
 
-        # Buildings
-        b_tt, _ = Building.objects.get_or_create(code='TT', defaults={'name': 'Technology Tower', 'lat': 12.9712, 'lng': 79.1593, 'total_floors': 7, 'rooms_count': 140})
-        b_sjt, _ = Building.objects.get_or_create(code='SJT', defaults={'name': 'Silver Jubilee Tower', 'lat': 12.9718, 'lng': 79.1633, 'total_floors': 8, 'rooms_count': 180})
-        b_mb, _ = Building.objects.get_or_create(code='MB', defaults={'name': 'Main Building', 'lat': 12.9696, 'lng': 79.1559, 'total_floors': 4, 'rooms_count': 65})
+        # Buildings (Verified OpenStreetMap Campus Coordinates)
+        b_tt, _ = Building.objects.update_or_create(code='TT', defaults={'name': 'Technology Tower', 'lat': 12.97061, 'lng': 79.15951, 'total_floors': 7, 'rooms_count': 140})
+        b_sjt, _ = Building.objects.update_or_create(code='SJT', defaults={'name': 'Silver Jubilee Tower', 'lat': 12.97095, 'lng': 79.16390, 'total_floors': 8, 'rooms_count': 180})
+        b_mb, _ = Building.objects.update_or_create(code='MB', defaults={'name': 'Main Building', 'lat': 12.96925, 'lng': 79.15585, 'total_floors': 4, 'rooms_count': 65})
 
         # Rooms
         Room.objects.get_or_create(room_number='TT-624', building=b_tt, defaults={'floor': 6, 'capacity': 70, 'availability_status': 'available', 'available_until': '12:00 PM', 'facilities': ['Projector', 'AC', 'Smart Board'], 'current_course': 'Free Slot'})
         Room.objects.get_or_create(room_number='SJT-302', building=b_sjt, defaults={'floor': 3, 'capacity': 60, 'availability_status': 'available', 'available_until': '01:30 PM', 'facilities': ['Projector', 'LAN Outlets'], 'current_course': 'Free Slot'})
 
         # Campus Locations
-        CampusLocation.objects.get_or_create(code='TT', defaults={'name': 'Technology Tower (TT)', 'category': 'academic', 'lat': 12.9712, 'lng': 79.1593, 'description': 'Flagship academic building housing CSE & ECE classrooms and labs.', 'building_name': 'Technology Tower', 'opening_hours': '08:00 AM - 07:30 PM', 'is_saved': True})
-        CampusLocation.objects.get_or_create(code='SJT', defaults={'name': 'Silver Jubilee Tower (SJT)', 'category': 'academic', 'lat': 12.9718, 'lng': 79.1633, 'description': 'Modern SCOPE academic block with computer labs.', 'building_name': 'Silver Jubilee Tower', 'opening_hours': '08:00 AM - 08:00 PM'})
-        CampusLocation.objects.get_or_create(code='MED', defaults={'name': 'VIT Health & Medical Centre', 'category': 'service', 'lat': 12.9680, 'lng': 79.1550, 'description': '24/7 medical facility with resident doctors.', 'building_name': 'Medical Centre', 'opening_hours': 'Open 24/7', 'is_saved': True})
+        CampusLocation.objects.update_or_create(code='TT', defaults={'name': 'Technology Tower (TT)', 'category': 'academic', 'lat': 12.97061, 'lng': 79.15951, 'description': 'Flagship academic building housing CSE & ECE classrooms and labs.', 'building_name': 'Technology Tower', 'opening_hours': '08:00 AM - 07:30 PM', 'is_saved': True})
+        CampusLocation.objects.update_or_create(code='SJT', defaults={'name': 'Silver Jubilee Tower (SJT)', 'category': 'academic', 'lat': 12.97095, 'lng': 79.16390, 'description': 'Modern SCOPE academic block with computer labs.', 'building_name': 'Silver Jubilee Tower', 'opening_hours': '08:00 AM - 08:00 PM'})
+        CampusLocation.objects.update_or_create(code='MED', defaults={'name': 'VIT Health & Medical Centre', 'category': 'service', 'lat': 12.96953, 'lng': 79.15465, 'description': '24/7 medical facility with resident doctors in AL Mudaliar Block.', 'building_name': 'Medical Centre', 'opening_hours': 'Open 24/7', 'is_saved': True})
 
         # Automatically seed full VIT Vellore Campus Directory (152+ verified locations & buildings)
         try:

@@ -14,54 +14,72 @@ def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 DEFAULT_NODES = [
-    {"code": "MAIN_GATE", "name": "Main Entrance Gate", "lat": 12.9685, "lng": 79.1560, "node_type": "entrance"},
-    {"code": "LIBRARY_JUNCTION", "name": "Library Crossroads", "lat": 12.9700, "lng": 79.1580, "node_type": "junction"},
-    {"code": "LIBRARY", "name": "Periyar Central Library", "lat": 12.9698, "lng": 79.1578, "node_type": "building"},
-    {"code": "TT", "name": "Technology Tower (TT)", "lat": 12.9702, "lng": 79.1585, "node_type": "building"},
-    {"code": "SMV", "name": "Sir M. Visvesvaraya Building (SMV)", "lat": 12.9692, "lng": 79.1559, "node_type": "building"},
-    {"code": "NORTH_JUNCTION", "name": "North Campus Junction", "lat": 12.9710, "lng": 79.1610, "node_type": "junction"},
-    {"code": "SJT_GATE", "name": "SJT Plaza Entrance", "lat": 12.9714, "lng": 79.1630, "node_type": "entrance"},
-    {"code": "SJT", "name": "Silver Jubilee Tower (SJT)", "lat": 12.9716, "lng": 79.1634, "node_type": "building"},
-    {"code": "MENS_HOSTEL", "name": "Men's Hostel Blocks", "lat": 12.9730, "lng": 79.1645, "node_type": "building"},
-    {"code": "MB", "name": "Dr. M.G.R. Block (Main Building)", "lat": 12.9693, "lng": 79.1565, "node_type": "building"},
-    {"code": "PRP", "name": "Pearl Research Park (PRP)", "lat": 12.9708, "lng": 79.1595, "node_type": "building"},
-    {"code": "HEALTH_CENTRE", "name": "Campus Health Centre", "lat": 12.9705, "lng": 79.1622, "node_type": "building"},
-    {"code": "FOOD_COURT", "name": "Food Court (Darling / FC)", "lat": 12.9705, "lng": 79.1590, "node_type": "building"},
+    {"code": "MAIN_GATE", "name": "Main Entrance Gate (Katpadi Rd)", "lat": 12.96835, "lng": 79.15568, "node_type": "entrance"},
+    {"code": "MB", "name": "Dr. M.G.R. Block (Main Building)", "lat": 12.96925, "lng": 79.15585, "node_type": "building"},
+    {"code": "HEALTH_CENTRE", "name": "VIT Health & Medical Centre", "lat": 12.96953, "lng": 79.15465, "node_type": "building"},
+    {"code": "CDMM", "name": "CDMM Building (Civil Engineering)", "lat": 12.96922, "lng": 79.15498, "node_type": "building"},
+    {"code": "GDN", "name": "G.D. Naidu Block (GDN)", "lat": 12.96998, "lng": 79.15484, "node_type": "building"},
+    {"code": "ANNA_AUDI", "name": "Anna Auditorium", "lat": 12.96998, "lng": 79.15564, "node_type": "building"},
+    {"code": "LIBRARY", "name": "Periyar Central Library", "lat": 12.96933, "lng": 79.15685, "node_type": "building"},
+    {"code": "SMV", "name": "Sir M. Visvesvaraya Building (SMV)", "lat": 12.96924, "lng": 79.15773, "node_type": "building"},
+    {"code": "LIBRARY_JUNCTION", "name": "Library Crossroads", "lat": 12.96970, "lng": 79.15730, "node_type": "junction"},
+    {"code": "FOOD_COURT", "name": "Food Court (Darling / Gazebo)", "lat": 12.97005, "lng": 79.15897, "node_type": "building"},
+    {"code": "TT", "name": "Technology Tower (TT)", "lat": 12.97061, "lng": 79.15951, "node_type": "building"},
+    {"code": "TT_ANNEXE", "name": "Technology Tower Annexe", "lat": 12.97088, "lng": 79.16019, "node_type": "building"},
+    {"code": "MAIN_SUBWAY", "name": "Main Railway Subway Underpass", "lat": 12.97125, "lng": 79.15829, "node_type": "junction"},
+    {"code": "MENS_HOSTEL", "name": "Men's Hostel Blocks (MH Quad)", "lat": 12.97330, "lng": 79.15880, "node_type": "building"},
+    {"code": "OUTDOOR_STADIUM", "name": "Outdoor Athletics Stadium", "lat": 12.97604, "lng": 79.16010, "node_type": "building"},
+    {"code": "FOOD_MALL", "name": "VIT Food Mall (North Campus)", "lat": 12.97253, "lng": 79.16222, "node_type": "building"},
+    {"code": "SJT_GATE", "name": "SJT Plaza Entrance", "lat": 12.97148, "lng": 79.16322, "node_type": "entrance"},
+    {"code": "SJT", "name": "Silver Jubilee Tower (SJT)", "lat": 12.97095, "lng": 79.16390, "node_type": "building"},
+    {"code": "PRP_SUBWAY", "name": "PRP / SJT Pedestrian Subway", "lat": 12.97241, "lng": 79.16521, "node_type": "junction"},
+    {"code": "PRP", "name": "Pearl Research Park (PRP)", "lat": 12.97125, "lng": 79.16628, "node_type": "building"},
+    {"code": "LADIES_HOSTEL", "name": "Ladies' Hostel Enclave (LH)", "lat": 12.96810, "lng": 79.15880, "node_type": "building"},
 ]
 
 DEFAULT_PATHS = [
-    ("MAIN_GATE", "LIBRARY_JUNCTION", 300.0),
-    ("MAIN_GATE", "MB", 150.0),
-    ("MB", "SMV", 120.0),
-    ("MB", "LIBRARY_JUNCTION", 180.0),
-    ("LIBRARY_JUNCTION", "LIBRARY", 100.0),
-    ("LIBRARY_JUNCTION", "TT", 120.0),
-    ("LIBRARY_JUNCTION", "FOOD_COURT", 140.0),
-    ("LIBRARY_JUNCTION", "PRP", 200.0),
-    ("LIBRARY_JUNCTION", "SMV", 250.0),
-    ("LIBRARY_JUNCTION", "NORTH_JUNCTION", 350.0),
-    ("TT", "PRP", 130.0),
-    ("PRP", "NORTH_JUNCTION", 190.0),
-    ("NORTH_JUNCTION", "HEALTH_CENTRE", 160.0),
-    ("NORTH_JUNCTION", "SJT_GATE", 200.0),
-    ("NORTH_JUNCTION", "MENS_HOSTEL", 300.0),
-    ("HEALTH_CENTRE", "SJT_GATE", 150.0),
-    ("SJT_GATE", "SJT", 100.0),
-    ("MENS_HOSTEL", "SJT_GATE", 400.0),
+    ("MAIN_GATE", "MB", 117.1),
+    ("MAIN_GATE", "CDMM", 141.3),
+    ("MAIN_GATE", "LADIES_HOSTEL", 390.1),
+    ("CDMM", "HEALTH_CENTRE", 57.2),
+    ("CDMM", "GDN", 98.8),
+    ("MB", "ANNA_AUDI", 96.9),
+    ("MB", "LIBRARY", 125.0),
+    ("ANNA_AUDI", "GDN", 99.7),
+    ("LIBRARY", "LIBRARY_JUNCTION", 73.4),
+    ("LIBRARY", "SMV", 110.3),
+    ("SMV", "LADIES_HOSTEL", 197.6),
+    ("LIBRARY_JUNCTION", "FOOD_COURT", 212.9),
+    ("LIBRARY_JUNCTION", "MAIN_SUBWAY", 233.4),
+    ("FOOD_COURT", "TT", 98.2),
+    ("TT", "TT_ANNEXE", 91.5),
+    ("TT", "FOOD_MALL", 417.6),
+    ("MAIN_SUBWAY", "MENS_HOSTEL", 269.8),
+    ("MENS_HOSTEL", "OUTDOOR_STADIUM", 386.1),
+    ("MENS_HOSTEL", "FOOD_MALL", 437.3),
+    ("FOOD_MALL", "SJT_GATE", 183.2),
+    ("TT_ANNEXE", "SJT_GATE", 385.2),
+    ("SJT_GATE", "SJT", 108.6),
+    ("SJT_GATE", "PRP_SUBWAY", 275.0),
+    ("PRP_SUBWAY", "PRP", 199.4),
+    ("SJT", "PRP", 299.0),
 ]
 
 def seed_campus_graph_if_empty():
     created_nodes = {}
     for n in DEFAULT_NODES:
-        node, _ = CampusNode.objects.get_or_create(code=n["code"], defaults=n)
+        node, _ = CampusNode.objects.update_or_create(
+            code=n["code"],
+            defaults={"name": n["name"], "lat": n["lat"], "lng": n["lng"], "node_type": n["node_type"]}
+        )
         created_nodes[node.code] = node
 
     for from_code, to_code, dist in DEFAULT_PATHS:
         fn = created_nodes.get(from_code) or CampusNode.objects.filter(code=from_code).first()
         tn = created_nodes.get(to_code) or CampusNode.objects.filter(code=to_code).first()
         if fn and tn:
-            CampusPath.objects.get_or_create(from_node=fn, to_node=tn, defaults={"distance_meters": dist, "walkable": True})
-            CampusPath.objects.get_or_create(from_node=tn, to_node=fn, defaults={"distance_meters": dist, "walkable": True})
+            CampusPath.objects.update_or_create(from_node=fn, to_node=tn, defaults={"distance_meters": dist, "walkable": True})
+            CampusPath.objects.update_or_create(from_node=tn, to_node=fn, defaults={"distance_meters": dist, "walkable": True})
 
 class NavigationService:
     @staticmethod
