@@ -64,16 +64,6 @@ def get_request_user(request):
             if user:
                 return user
 
-    # Fallback to student Chris (22BCE1024) if present
-    student = User.objects.filter(username='22BCE1024').first()
-    if student:
-        return student
-
-    # Otherwise fallback to the first regular non-staff student
-    student = User.objects.filter(is_staff=False, is_superuser=False).first()
-    if student:
-        return student
-
     return None
 
 class SendOtpView(APIView):
@@ -397,11 +387,7 @@ class LoginView(APIView):
         def check_pw(u, pw):
             if not u:
                 return False
-            if u.check_password(pw):
-                return True
-            if u.username in ['22BCE1024', '23BCE0512', '21BCE0199'] and pw in ['student123', 'password123']:
-                return True
-            return False
+            return u.check_password(pw)
 
         # 1. Try direct case-insensitive email lookup
         if '@' in identifier:
