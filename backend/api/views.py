@@ -116,30 +116,39 @@ class SendOtpView(APIView):
             f"VIT Vellore Campus System"
         )
 
-        # --- PRIMARY: Send OTP via Resend HTTP API (works on Render free tier) ---
-        resend_api_key = os.environ.get('RESEND_API_KEY', '').strip()
+        # --- PRIMARY: Send OTP via Brevo HTTP API (works on Render free tier) ---
+        brevo_api_key = os.environ.get('BREVO_API_KEY', '').strip()
+        sender_email = os.environ.get('EMAIL_HOST_USER', 'vitcampusosofficial@gmail.com').strip()
 
-        if resend_api_key:
+        if brevo_api_key:
             try:
-                import resend
-                resend.api_key = resend_api_key
-
-                resend.Emails.send({
-                    "from": "VIT CampusOS <onboarding@resend.dev>",
-                    "to": [email],
-                    "subject": subject,
-                    "text": message,
-                })
-
-                logger.info(f"OTP email sent via Resend to {email}")
-                return Response({
-                    'message': f"A 6-digit verification code has been sent to {email}. Please check your inbox and spam folder.",
-                    'email': email,
-                    'expires_in_seconds': 600
-                }, status=status.HTTP_200_OK)
+                import requests as http_requests
+                resp = http_requests.post(
+                    'https://api.brevo.com/v3/smtp/email',
+                    headers={
+                        'api-key': brevo_api_key,
+                        'Content-Type': 'application/json'
+                    },
+                    json={
+                        'sender': {'name': 'VIT CampusOS', 'email': sender_email},
+                        'to': [{'email': email}],
+                        'subject': subject,
+                        'textContent': message,
+                    },
+                    timeout=15
+                )
+                if resp.status_code in (200, 201):
+                    logger.info(f"OTP email sent via Brevo to {email}")
+                    return Response({
+                        'message': f"A 6-digit verification code has been sent to {email}. Please check your inbox and spam folder.",
+                        'email': email,
+                        'expires_in_seconds': 600
+                    }, status=status.HTTP_200_OK)
+                else:
+                    logger.error(f"Brevo API error {resp.status_code}: {resp.text}")
 
             except Exception as e:
-                logger.error(f"Resend email failed for {email}: {e}")
+                logger.error(f"Brevo email failed for {email}: {e}")
                 # Fall through to SMTP fallback
 
         # --- FALLBACK: Send OTP via Gmail SMTP (works locally, blocked on Render) ---
