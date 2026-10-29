@@ -63,7 +63,7 @@ export const AssistantPage: React.FC = () => {
         { label: '🖨️ Nearest Printer Shop', action: 'send', payload: 'Where is printer shop next to me?' },
         { label: '🏫 Where is TT-624?', action: 'send', payload: 'Where is TT-624?' },
         { label: '🏥 Medical Centre & Emergency', action: 'send', payload: 'Where is the medical centre and ambulance?' },
-        { label: '🔍 Empty Classrooms', action: 'send', payload: 'Which classrooms are empty right now?' },
+        { label: '📚 Central Library', action: 'send', payload: 'Where is the Central Library?' },
       ]
     }
   ]);

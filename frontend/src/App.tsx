@@ -9,7 +9,6 @@ import { DashboardPage } from './pages/DashboardPage';
 import { MapPage } from './pages/MapPage';
 import { AssistantPage } from './pages/AssistantPage';
 import { TimetablePage } from './pages/TimetablePage';
-import { ClassroomPage } from './pages/ClassroomPage';
 import { LostFoundPage } from './pages/LostFoundPage';
 import { DirectoryPage } from './pages/DirectoryPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -89,7 +88,6 @@ export default function App() {
             <Route path="/map" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
             <Route path="/assistant" element={<ProtectedRoute><AssistantPage /></ProtectedRoute>} />
             <Route path="/timetable" element={<ProtectedRoute><TimetablePage /></ProtectedRoute>} />
-            <Route path="/classrooms" element={<ProtectedRoute><ClassroomPage /></ProtectedRoute>} />
             <Route path="/lost-found" element={<ProtectedRoute><LostFoundPage /></ProtectedRoute>} />
             <Route path="/directory/*" element={<ProtectedRoute><DirectoryPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

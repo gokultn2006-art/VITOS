@@ -1,4 +1,4 @@
-import type { CampusLocation, Building, Room, TimetableEntry, LostItem, DirectoryEntry, NotificationItem, User } from '../types';
+import type { CampusLocation, Building, TimetableEntry, LostItem, DirectoryEntry, NotificationItem, User } from '../types';
 
 export const currentUser: User = {
   id: 'usr_1024',
@@ -190,81 +190,6 @@ export const buildings: Building[] = [
   { id: 'b_lib', name: 'Central Library', code: 'LIB', lat: 12.96933, lng: 79.15685, totalFloors: 6, roomsCount: 24 },
   { id: 'b_gdn', name: 'G.D. Naidu Block', code: 'GDN', lat: 12.96998, lng: 79.15484, totalFloors: 5, roomsCount: 80 },
   { id: 'b_cdmm', name: 'CDMM Building', code: 'CDMM', lat: 12.96922, lng: 79.15498, totalFloors: 4, roomsCount: 45 }
-];
-
-export const emptyClassrooms: Room[] = [
-  {
-    id: 'r_tt624',
-    roomNumber: 'TT-624',
-    buildingCode: 'TT',
-    buildingName: 'Technology Tower',
-    floor: 6,
-    capacity: 70,
-    availabilityStatus: 'available',
-    availableUntil: '12:00 PM (Next: SWE Lab at 12:15 PM)',
-    facilities: ['Projector', 'Smart Board', 'Central AC', '60 Power Sockets', 'Wi-Fi Access Point'],
-    currentCourse: 'Free Slot'
-  },
-  {
-    id: 'r_tt412',
-    roomNumber: 'TT-412',
-    buildingCode: 'TT',
-    buildingName: 'Technology Tower',
-    floor: 4,
-    capacity: 85,
-    availabilityStatus: 'available',
-    availableUntil: '02:00 PM',
-    facilities: ['Dual Projectors', 'Podium Mic', 'AC', 'Elevator Access'],
-    currentCourse: 'Free Slot'
-  },
-  {
-    id: 'r_sjt302',
-    roomNumber: 'SJT-302',
-    buildingCode: 'SJT',
-    buildingName: 'Silver Jubilee Tower',
-    floor: 3,
-    capacity: 60,
-    availabilityStatus: 'available',
-    availableUntil: '01:30 PM',
-    facilities: ['Projector', 'LAN Outlets', 'AC', 'Whiteboard'],
-    currentCourse: 'Free Slot'
-  },
-  {
-    id: 'r_sjt515',
-    roomNumber: 'SJT-515',
-    buildingCode: 'SJT',
-    buildingName: 'Silver Jubilee Tower',
-    floor: 5,
-    capacity: 100,
-    availabilityStatus: 'available',
-    availableUntil: '03:00 PM',
-    facilities: ['Tiered Gallery Seating', 'Surround Audio', 'Dual Screens', 'AC'],
-    currentCourse: 'Free Slot'
-  },
-  {
-    id: 'r_mb112',
-    roomNumber: 'MB-112',
-    buildingCode: 'MB',
-    buildingName: 'Main Building',
-    floor: 1,
-    capacity: 50,
-    availabilityStatus: 'available',
-    availableUntil: '11:30 AM',
-    facilities: ['Projector', 'Natural Light', 'AC'],
-    currentCourse: 'Free Slot'
-  },
-  {
-    id: 'r_sjt210',
-    roomNumber: 'SJT-210',
-    buildingCode: 'SJT',
-    buildingName: 'Silver Jubilee Tower',
-    floor: 2,
-    capacity: 75,
-    availabilityStatus: 'occupied',
-    availableUntil: 'Currently Occupied (Class till 11:00 AM)',
-    facilities: ['Projector', 'AC'],
-    currentCourse: 'Database Systems (CSE3001)'
-  }
 ];
 
 export const studentTimetable: TimetableEntry[] = [
@@ -488,7 +413,7 @@ export const sampleAiQuestions = [
   "Where is the Medical Centre?",
   "How do I get to SJT?",
   "Where is the nearest printer?",
-  "Which classroom is free right now?",
+  "Where is the Central Library?",
   "What is my next class?"
 ];
 

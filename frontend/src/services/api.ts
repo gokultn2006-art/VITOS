@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { campusLocations, emptyClassrooms, studentTimetable, lostItemsList, directoryEntries, buildings } from '../data/mockData';
-import type { CampusLocation, Room, TimetableEntry, LostItem, DirectoryEntry, NotificationItem, ChatMessage, User, NavigationRouteResult, NavigationStep } from '../types';
+import { campusLocations, studentTimetable, lostItemsList, directoryEntries, buildings } from '../data/mockData';
+import type { CampusLocation, TimetableEntry, LostItem, DirectoryEntry, NotificationItem, ChatMessage, User, NavigationRouteResult, NavigationStep } from '../types';
 
 const rawBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 const API_BASE = rawBase ? (rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`) : '/api';
@@ -257,20 +257,6 @@ export const locationService = {
       return res.data;
     } catch {
       return campusLocations.find(l => l.id === id || l.code === id);
-    }
-  }
-};
-
-export const classroomService = {
-  async getAvailable(): Promise<Room[]> {
-    try {
-      const res = await api.get('/classrooms/available/');
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        return res.data;
-      }
-      return emptyClassrooms;
-    } catch {
-      return emptyClassrooms;
     }
   }
 };
@@ -903,14 +889,18 @@ function generateFallbackAiResponse(query: string): ChatMessage {
     ];
   }
 
-  // 9. EMPTY CLASSROOMS
-  else if (q.includes('classroom') && (q.includes('free') || q.includes('empty') || q.includes('available'))) {
-    text = "🏫 **Classrooms currently free for study:**\n\n" +
-           "- **TT-624** (70 capacity, available until 01:00 PM)\n" +
-           "- **SJT-302** (60 capacity, available until 02:30 PM)\n" +
-           "- **GDN-108** (55 capacity, available until 12:45 PM)\n\n" +
-           "You can book or explore real-time availability on the Classroom Finder.";
-    quickActions = [{ label: 'View Empty Classroom Finder', action: 'route', payload: '/classrooms' }];
+  // 9. STUDY SPACES & LIBRARY
+  else if ((q.includes('classroom') && (q.includes('free') || q.includes('empty') || q.includes('available'))) || q.includes('study') || q.includes('quiet')) {
+    const libUrl = `/map?destName=Central%20Library&lat=12.96933&lng=79.15685`;
+    text = "📚 **Quiet Study Spaces at VIT Vellore:**\n\n" +
+           "- **Central Library**: 6 floors with air-conditioned reading halls, digital library labs, and reference sections.\n" +
+           "- **Academic Block Lounges**: Open discussion zones on TT 1st floor & SJT ground floor.\n\n" +
+           `🗺️ **[📍 Navigate to Central Library](${libUrl})**`;
+    suggestedLocations = [{ id: 'lib', name: 'Central Library', category: 'Library', latitude: 12.96933, longitude: 79.15685 }];
+    quickActions = [
+      { label: 'Navigate to Central Library', action: 'navigate', payload: libUrl },
+      { label: 'Campus Navigation Map', action: 'route', payload: '/map' }
+    ];
   }
 
   // 10. TIMETABLE

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Compass, MapPin, Bot, DoorOpen, Navigation2, Clock,
+  Compass, MapPin, Bot, Navigation2, Clock,
   Activity, BookOpen, Printer, CreditCard,
   ArrowRight, Footprints, AlertCircle, Calendar,
   ChevronRight, LocateFixed, Radio, CheckCircle2,
@@ -464,7 +464,7 @@ export const DashboardPage: React.FC = () => {
               { label: 'Campus Map',   icon: MapPin,       path: '/map' },
               { label: 'Navigate',     icon: Navigation2,  path: '/map?myLocation=true' },
               { label: 'AI Assistant', icon: Bot,          path: '/assistant' },
-              { label: 'Classrooms',   icon: DoorOpen,     path: '/classrooms' },
+              { label: 'Timetable',    icon: Calendar,     path: '/timetable' },
             ].map((a) => (
               <button
                 key={a.path}

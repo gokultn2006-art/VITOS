@@ -5,7 +5,6 @@ import {
   MapPin,
   Bot,
   Calendar,
-  DoorOpen,
   BookOpen,
   ShieldCheck,
   Compass,
@@ -28,7 +27,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Campus Navigation', path: '/map', icon: MapPin },
     { label: 'AI Assistant', path: '/assistant', icon: Bot, badge: 'AI' },
     { label: 'Smart Timetable', path: '/timetable', icon: Calendar },
-    { label: 'Empty Classrooms', path: '/classrooms', icon: DoorOpen },
     { label: 'Campus Directory', path: '/directory', icon: BookOpen },
     // Admin Panel — only visible to staff/admin users
     ...(isAdmin ? [{ label: 'Admin Panel', path: '/admin', icon: ShieldCheck, badge: 'Staff' }] : []),
