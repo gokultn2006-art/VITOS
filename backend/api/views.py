@@ -116,7 +116,33 @@ class SendOtpView(APIView):
             f"VIT Vellore Campus System"
         )
 
-        # Dynamically reload credentials from backend/.env if needed
+        # --- PRIMARY: Send OTP via Resend HTTP API (works on Render free tier) ---
+        resend_api_key = os.environ.get('RESEND_API_KEY', '').strip()
+
+        if resend_api_key:
+            try:
+                import resend
+                resend.api_key = resend_api_key
+
+                resend.Emails.send({
+                    "from": "VIT CampusOS <onboarding@resend.dev>",
+                    "to": [email],
+                    "subject": subject,
+                    "text": message,
+                })
+
+                logger.info(f"OTP email sent via Resend to {email}")
+                return Response({
+                    'message': f"A 6-digit verification code has been sent to {email}. Please check your inbox and spam folder.",
+                    'email': email,
+                    'expires_in_seconds': 600
+                }, status=status.HTTP_200_OK)
+
+            except Exception as e:
+                logger.error(f"Resend email failed for {email}: {e}")
+                # Fall through to SMTP fallback
+
+        # --- FALLBACK: Send OTP via Gmail SMTP (works locally, blocked on Render) ---
         env_file = settings.BASE_DIR / '.env'
         if env_file.exists():
             try:
@@ -132,56 +158,46 @@ class SendOtpView(APIView):
         host_user = (os.environ.get('EMAIL_HOST_USER') or getattr(settings, 'EMAIL_HOST_USER', '')).strip()
         host_password = (os.environ.get('EMAIL_HOST_PASSWORD') or getattr(settings, 'EMAIL_HOST_PASSWORD', '')).strip().replace(' ', '')
 
-        if not host_user or not host_password:
-            return Response({
-                'error': (
-                    'Real email delivery is not yet configured. '
-                    'To dispatch OTP emails to @vitstudent.ac.in, please provide EMAIL_HOST_USER '
-                    'and a 16-character Google App Password in backend/.env.'
+        if host_user and host_password:
+            try:
+                from django.core.mail.backends.smtp import EmailBackend
+                from django.core.mail import EmailMessage
+
+                backend = EmailBackend(
+                    host='smtp.gmail.com',
+                    port=587,
+                    username=host_user,
+                    password=host_password,
+                    use_tls=True,
+                    fail_silently=False,
+                    timeout=15,
                 )
-            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                email_msg = EmailMessage(
+                    subject=subject,
+                    body=message,
+                    from_email=f'VIT Vellore Admissions <{host_user}>',
+                    to=[email],
+                    connection=backend
+                )
+                email_msg.send(fail_silently=False)
 
-        try:
-            from django.core.mail.backends.smtp import EmailBackend
-            from django.core.mail import EmailMessage
-
-            backend = EmailBackend(
-                host='smtp.gmail.com',
-                port=587,
-                username=host_user,
-                password=host_password,
-                use_tls=True,
-                fail_silently=False,
-                timeout=15,
-            )
-            email_msg = EmailMessage(
-                subject=subject,
-                body=message,
-                from_email=f'VIT Vellore Admissions <{host_user}>',
-                to=[email],
-                connection=backend
-            )
-            email_msg.send(fail_silently=False)
-        except Exception as e:
-            logger.error(f"send_mail failed for {email}: {e}")
-            err_str = str(e)
-            # Render Free Tier blocks outbound SMTP ports (25, 465, 587) with [Errno 101] Network is unreachable
-            if '101' in err_str or 'Network is unreachable' in err_str or 'timed out' in err_str.lower() or 'connection' in err_str.lower():
-                logger.warning(f"Render Free Tier SMTP port 587 blocked. Active fallback verification code for {email}: {otp_code}")
+                logger.info(f"OTP email sent via Gmail SMTP to {email}")
                 return Response({
-                    'message': f"Render Free Tier blocks SMTP port 587. Your active verification code is: {otp_code}",
+                    'message': f"A 6-digit verification code has been dispatched to {email}. Please check your inbox and spam folder.",
                     'email': email,
-                    'otp': otp_code,
                     'expires_in_seconds': 600
                 }, status=status.HTTP_200_OK)
 
-            return Response({
-                'error': f'Failed to dispatch email via Gmail SMTP: {str(e)}. Please check your credentials in backend/.env.'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception as e:
+                logger.error(f"Gmail SMTP failed for {email}: {e}")
+                # Fall through to on-screen fallback
 
+        # --- LAST RESORT: Return OTP on-screen ---
+        logger.warning(f"All email methods failed. Returning OTP on-screen for {email}: {otp_code}")
         return Response({
-            'message': f"A 6-digit verification code has been dispatched to {email}. Please check your inbox and spam folder.",
+            'message': f"Email delivery is temporarily unavailable. Your verification code is: {otp_code}",
             'email': email,
+            'otp': otp_code,
             'expires_in_seconds': 600
         }, status=status.HTTP_200_OK)
 
