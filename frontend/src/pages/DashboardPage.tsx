@@ -185,6 +185,10 @@ function ClassCard({
   const walkMin = calculateWalkingMinutes(distM);
   const leaveInfo = calculateLeaveByTime(cls.slotInfo.startTime, walkMin);
 
+  const isOngoing = cls.statusType === 'ongoing';
+  const isFutureDay = cls.statusType === 'upcoming';
+  const dayPrefix = isFutureDay ? (cls.dayLabel ? `${cls.dayLabel.toLowerCase()} ` : 'tomorrow ') : '';
+
   return (
     <div className={`rounded-2xl border-2 ${borderColor} p-4 space-y-3 transition-all`}>
       {/* top row: badge + day */}
@@ -228,15 +232,27 @@ function ClassCard({
       </div>
 
       {/* departure + navigate */}
-      <div className="flex items-center justify-between p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/60">
-        <div className="flex items-center gap-1.5 text-xs text-amber-900">
-          <Footprints className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-          <span>
-            <strong>Leave by </strong>
-            <span className="font-mono font-bold">{leaveInfo.leaveByTimeString}</span>
-            <span className="text-amber-700/80 ml-1">({walkMin} min walk)</span>
-          </span>
-        </div>
+      <div className={`flex items-center justify-between p-2.5 rounded-xl border ${
+        isOngoing ? 'bg-emerald-50/80 border-emerald-200/60' : 'bg-amber-50/80 border-amber-200/60'
+      }`}>
+        {isOngoing ? (
+          <div className="flex items-center gap-2 text-xs text-emerald-800 font-semibold">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span>Class in session · Ends at {cls.slotInfo.endTime}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-xs text-amber-900">
+            <Footprints className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span>
+              <strong>Leave {dayPrefix}by </strong>
+              <span className="font-mono font-bold">{leaveInfo.leaveByTimeString}</span>
+              <span className="text-amber-700/80 ml-1">({walkMin} min walk)</span>
+            </span>
+          </div>
+        )}
         <button
           onClick={() => onNavigate(cls.venue)}
           className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#9D0208] hover:bg-[#6A040F] text-white text-[11px] font-bold transition-colors"

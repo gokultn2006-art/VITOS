@@ -24,13 +24,12 @@ export function calculateWalkingMinutes(distanceMeters: number): number {
   return Math.max(1, Math.round(distanceMeters / 75));
 }
 
-// Calculate leave-by prediction
+// Calculate leave-by prediction based on class start time and walking duration
 export function calculateLeaveByTime(
   classStartTimeStr: string,
   walkingMinutes: number
 ): { leaveInMinutes: number; leaveByTimeString: string } {
-  // Parse time string e.g. "10:00 AM"
-  const now = new Date();
+  // Parse time string e.g. "08:00 AM" or "02:00 PM"
   const [time, period] = classStartTimeStr.split(' ');
   const [hoursStr, minutesStr] = time.split(':');
   let hours = parseInt(hoursStr, 10);
@@ -39,19 +38,21 @@ export function calculateLeaveByTime(
   if (period === 'PM' && hours !== 12) hours += 12;
   if (period === 'AM' && hours === 12) hours = 0;
 
-  const targetDate = new Date();
-  targetDate.setHours(hours, minutes, 0, 0);
-
-  // If target date has passed today, assume target is in 15 mins for demo
-  if (targetDate.getTime() < now.getTime()) {
-    targetDate.setTime(now.getTime() + 20 * 60 * 1000);
+  // Calculate departure time by subtracting walking minutes from class start
+  const classStartTotalMinutes = hours * 60 + minutes;
+  let leaveTotalMinutes = classStartTotalMinutes - walkingMinutes;
+  if (leaveTotalMinutes < 0) {
+    leaveTotalMinutes += 24 * 60;
   }
 
-  const leaveDate = new Date(targetDate.getTime() - walkingMinutes * 60 * 1000);
-  const diffMs = leaveDate.getTime() - now.getTime();
-  const leaveInMinutes = Math.max(1, Math.round(diffMs / (60 * 1000)));
+  const leaveHour24 = Math.floor(leaveTotalMinutes / 60) % 24;
+  const leaveMin = leaveTotalMinutes % 60;
 
-  const leaveByTimeString = leaveDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const leavePeriod = leaveHour24 >= 12 ? 'PM' : 'AM';
+  let leaveHour12 = leaveHour24 % 12;
+  if (leaveHour12 === 0) leaveHour12 = 12;
 
-  return { leaveInMinutes, leaveByTimeString };
+  const leaveByTimeString = `${String(leaveHour12).padStart(2, '0')}:${String(leaveMin).padStart(2, '0')} ${leavePeriod}`;
+
+  return { leaveInMinutes: walkingMinutes, leaveByTimeString };
 }
