@@ -16,17 +16,17 @@ export interface HeaderColumn {
 
 export const TABLE_COLUMNS: HeaderColumn[] = [
   { index: 0, theoryTime: '08:00 AM to 08:50 AM', labTime: '08:00 AM to 08:50 AM' },
-  { index: 1, theoryTime: '08:55 AM to 09:45 AM', labTime: '08:50 AM to 09:40 AM' },
-  { index: 2, theoryTime: '09:50 AM to 10:40 AM', labTime: '09:50 AM to 10:40 AM' },
-  { index: 3, theoryTime: '10:45 AM to 11:35 AM', labTime: '10:40 AM to 11:30 AM' },
-  { index: 4, theoryTime: '11:40 AM to 12:30 PM', labTime: '11:40 AM to 12:30 PM' },
+  { index: 1, theoryTime: '09:00 AM to 09:50 AM', labTime: '08:50 AM to 09:40 AM' },
+  { index: 2, theoryTime: '10:00 AM to 10:50 AM', labTime: '09:50 AM to 10:40 AM' },
+  { index: 3, theoryTime: '11:00 AM to 11:50 AM', labTime: '10:40 AM to 11:30 AM' },
+  { index: 4, theoryTime: '12:00 PM to 12:50 PM', labTime: '11:40 AM to 12:30 PM' },
   { index: 5, theoryTime: '', labTime: '12:30 PM to 01:20 PM' },
   { index: 6, theoryTime: 'LUNCH', labTime: 'LUNCH', isLunch: true },
   { index: 7, theoryTime: '02:00 PM to 02:50 PM', labTime: '02:00 PM to 02:50 PM' },
-  { index: 8, theoryTime: '02:55 PM to 03:45 PM', labTime: '02:50 PM to 03:40 PM' },
-  { index: 9, theoryTime: '03:50 PM to 04:40 PM', labTime: '03:50 PM to 04:40 PM' },
-  { index: 10, theoryTime: '04:45 PM to 05:35 PM', labTime: '04:40 PM to 05:30 PM' },
-  { index: 11, theoryTime: '05:40 PM to 06:30 PM', labTime: '05:40 PM to 06:30 PM' },
+  { index: 8, theoryTime: '03:00 PM to 03:50 PM', labTime: '02:50 PM to 03:40 PM' },
+  { index: 9, theoryTime: '04:00 PM to 04:50 PM', labTime: '03:50 PM to 04:40 PM' },
+  { index: 10, theoryTime: '05:00 PM to 05:50 PM', labTime: '04:40 PM to 05:30 PM' },
+  { index: 11, theoryTime: '06:00 PM to 06:50 PM', labTime: '05:40 PM to 06:30 PM' },
   { index: 12, theoryTime: '', labTime: '06:30 PM to 07:20 PM' },
 ];
 
@@ -44,88 +44,88 @@ export const VIT_SLOT_REGISTRY: Record<string, VitSlotInfo[]> = {
   // Morning Theory Slots
   'A1': [
     { slotCode: 'A1', day: 'MON', sessionType: 'theory', periodIndex: 0, startTime: '08:00 AM', endTime: '08:50 AM' },
-    { slotCode: 'A1', day: 'WED', sessionType: 'theory', periodIndex: 1, startTime: '08:55 AM', endTime: '09:45 AM' },
+    { slotCode: 'A1', day: 'WED', sessionType: 'theory', periodIndex: 1, startTime: '09:00 AM', endTime: '09:50 AM' },
   ],
   'B1': [
     { slotCode: 'B1', day: 'TUE', sessionType: 'theory', periodIndex: 0, startTime: '08:00 AM', endTime: '08:50 AM' },
-    { slotCode: 'B1', day: 'THU', sessionType: 'theory', periodIndex: 1, startTime: '08:55 AM', endTime: '09:45 AM' },
+    { slotCode: 'B1', day: 'THU', sessionType: 'theory', periodIndex: 1, startTime: '09:00 AM', endTime: '09:50 AM' },
   ],
   'C1': [
     { slotCode: 'C1', day: 'WED', sessionType: 'theory', periodIndex: 0, startTime: '08:00 AM', endTime: '08:50 AM' },
-    { slotCode: 'C1', day: 'FRI', sessionType: 'theory', periodIndex: 1, startTime: '08:55 AM', endTime: '09:45 AM' },
+    { slotCode: 'C1', day: 'FRI', sessionType: 'theory', periodIndex: 1, startTime: '09:00 AM', endTime: '09:50 AM' },
   ],
   'D1': [
-    { slotCode: 'D1', day: 'MON', sessionType: 'theory', periodIndex: 2, startTime: '09:50 AM', endTime: '10:40 AM' },
+    { slotCode: 'D1', day: 'MON', sessionType: 'theory', periodIndex: 2, startTime: '10:00 AM', endTime: '10:50 AM' },
     { slotCode: 'D1', day: 'THU', sessionType: 'theory', periodIndex: 0, startTime: '08:00 AM', endTime: '08:50 AM' },
   ],
   'E1': [
-    { slotCode: 'E1', day: 'TUE', sessionType: 'theory', periodIndex: 2, startTime: '09:50 AM', endTime: '10:40 AM' },
+    { slotCode: 'E1', day: 'TUE', sessionType: 'theory', periodIndex: 2, startTime: '10:00 AM', endTime: '10:50 AM' },
     { slotCode: 'E1', day: 'FRI', sessionType: 'theory', periodIndex: 0, startTime: '08:00 AM', endTime: '08:50 AM' },
   ],
   'F1': [
-    { slotCode: 'F1', day: 'MON', sessionType: 'theory', periodIndex: 1, startTime: '08:55 AM', endTime: '09:45 AM' },
-    { slotCode: 'F1', day: 'WED', sessionType: 'theory', periodIndex: 2, startTime: '09:50 AM', endTime: '10:40 AM' },
+    { slotCode: 'F1', day: 'MON', sessionType: 'theory', periodIndex: 1, startTime: '09:00 AM', endTime: '09:50 AM' },
+    { slotCode: 'F1', day: 'WED', sessionType: 'theory', periodIndex: 2, startTime: '10:00 AM', endTime: '10:50 AM' },
   ],
   'G1': [
-    { slotCode: 'G1', day: 'TUE', sessionType: 'theory', periodIndex: 1, startTime: '08:55 AM', endTime: '09:45 AM' },
-    { slotCode: 'G1', day: 'THU', sessionType: 'theory', periodIndex: 2, startTime: '09:50 AM', endTime: '10:40 AM' },
+    { slotCode: 'G1', day: 'TUE', sessionType: 'theory', periodIndex: 1, startTime: '09:00 AM', endTime: '09:50 AM' },
+    { slotCode: 'G1', day: 'THU', sessionType: 'theory', periodIndex: 2, startTime: '10:00 AM', endTime: '10:50 AM' },
   ],
 
   // Afternoon Theory Slots
   'A2': [
     { slotCode: 'A2', day: 'MON', sessionType: 'theory', periodIndex: 6, startTime: '02:00 PM', endTime: '02:50 PM' },
-    { slotCode: 'A2', day: 'WED', sessionType: 'theory', periodIndex: 7, startTime: '02:55 PM', endTime: '03:45 PM' },
+    { slotCode: 'A2', day: 'WED', sessionType: 'theory', periodIndex: 7, startTime: '03:00 PM', endTime: '03:50 PM' },
   ],
   'B2': [
     { slotCode: 'B2', day: 'TUE', sessionType: 'theory', periodIndex: 6, startTime: '02:00 PM', endTime: '02:50 PM' },
-    { slotCode: 'B2', day: 'THU', sessionType: 'theory', periodIndex: 7, startTime: '02:55 PM', endTime: '03:45 PM' },
+    { slotCode: 'B2', day: 'THU', sessionType: 'theory', periodIndex: 7, startTime: '03:00 PM', endTime: '03:50 PM' },
   ],
   'C2': [
     { slotCode: 'C2', day: 'WED', sessionType: 'theory', periodIndex: 6, startTime: '02:00 PM', endTime: '02:50 PM' },
-    { slotCode: 'C2', day: 'FRI', sessionType: 'theory', periodIndex: 7, startTime: '02:55 PM', endTime: '03:45 PM' },
+    { slotCode: 'C2', day: 'FRI', sessionType: 'theory', periodIndex: 7, startTime: '03:00 PM', endTime: '03:50 PM' },
   ],
   'D2': [
     { slotCode: 'D2', day: 'THU', sessionType: 'theory', periodIndex: 6, startTime: '02:00 PM', endTime: '02:50 PM' },
-    { slotCode: 'D2', day: 'MON', sessionType: 'theory', periodIndex: 8, startTime: '03:50 PM', endTime: '04:40 PM' },
+    { slotCode: 'D2', day: 'MON', sessionType: 'theory', periodIndex: 8, startTime: '04:00 PM', endTime: '04:50 PM' },
   ],
   'E2': [
     { slotCode: 'E2', day: 'FRI', sessionType: 'theory', periodIndex: 6, startTime: '02:00 PM', endTime: '02:50 PM' },
-    { slotCode: 'E2', day: 'TUE', sessionType: 'theory', periodIndex: 8, startTime: '03:50 PM', endTime: '04:40 PM' },
+    { slotCode: 'E2', day: 'TUE', sessionType: 'theory', periodIndex: 8, startTime: '04:00 PM', endTime: '04:50 PM' },
   ],
   'F2': [
-    { slotCode: 'F2', day: 'MON', sessionType: 'theory', periodIndex: 7, startTime: '02:55 PM', endTime: '03:45 PM' },
-    { slotCode: 'F2', day: 'WED', sessionType: 'theory', periodIndex: 8, startTime: '03:50 PM', endTime: '04:40 PM' },
+    { slotCode: 'F2', day: 'MON', sessionType: 'theory', periodIndex: 7, startTime: '03:00 PM', endTime: '03:50 PM' },
+    { slotCode: 'F2', day: 'WED', sessionType: 'theory', periodIndex: 8, startTime: '04:00 PM', endTime: '04:50 PM' },
   ],
   'G2': [
-    { slotCode: 'G2', day: 'TUE', sessionType: 'theory', periodIndex: 7, startTime: '02:55 PM', endTime: '03:45 PM' },
-    { slotCode: 'G2', day: 'THU', sessionType: 'theory', periodIndex: 8, startTime: '03:50 PM', endTime: '04:40 PM' },
+    { slotCode: 'G2', day: 'TUE', sessionType: 'theory', periodIndex: 7, startTime: '03:00 PM', endTime: '03:50 PM' },
+    { slotCode: 'G2', day: 'THU', sessionType: 'theory', periodIndex: 8, startTime: '04:00 PM', endTime: '04:50 PM' },
   ],
 
   // Tutorial Slots
-  'TA1': [{ slotCode: 'TA1', day: 'FRI', sessionType: 'theory', periodIndex: 2, startTime: '09:50 AM', endTime: '10:40 AM' }],
-  'TB1': [{ slotCode: 'TB1', day: 'MON', sessionType: 'theory', periodIndex: 3, startTime: '10:45 AM', endTime: '11:35 AM' }],
-  'TC1': [{ slotCode: 'TC1', day: 'TUE', sessionType: 'theory', periodIndex: 3, startTime: '10:45 AM', endTime: '11:35 AM' }],
-  'TD1': [{ slotCode: 'TD1', day: 'WED', sessionType: 'theory', periodIndex: 3, startTime: '10:45 AM', endTime: '11:35 AM' }],
-  'TE1': [{ slotCode: 'TE1', day: 'THU', sessionType: 'theory', periodIndex: 3, startTime: '10:45 AM', endTime: '11:35 AM' }],
-  'TF1': [{ slotCode: 'TF1', day: 'FRI', sessionType: 'theory', periodIndex: 3, startTime: '10:45 AM', endTime: '11:35 AM' }],
-  'TG1': [{ slotCode: 'TG1', day: 'MON', sessionType: 'theory', periodIndex: 4, startTime: '11:40 AM', endTime: '12:30 PM' }],
+  'TA1': [{ slotCode: 'TA1', day: 'FRI', sessionType: 'theory', periodIndex: 2, startTime: '10:00 AM', endTime: '10:50 AM' }],
+  'TB1': [{ slotCode: 'TB1', day: 'MON', sessionType: 'theory', periodIndex: 3, startTime: '11:00 AM', endTime: '11:50 AM' }],
+  'TC1': [{ slotCode: 'TC1', day: 'TUE', sessionType: 'theory', periodIndex: 3, startTime: '11:00 AM', endTime: '11:50 AM' }],
+  'TD1': [{ slotCode: 'TD1', day: 'WED', sessionType: 'theory', periodIndex: 3, startTime: '11:00 AM', endTime: '11:50 AM' }],
+  'TE1': [{ slotCode: 'TE1', day: 'THU', sessionType: 'theory', periodIndex: 3, startTime: '11:00 AM', endTime: '11:50 AM' }],
+  'TF1': [{ slotCode: 'TF1', day: 'FRI', sessionType: 'theory', periodIndex: 3, startTime: '11:00 AM', endTime: '11:50 AM' }],
+  'TG1': [{ slotCode: 'TG1', day: 'MON', sessionType: 'theory', periodIndex: 4, startTime: '12:00 PM', endTime: '12:50 PM' }],
 
-  'TA2': [{ slotCode: 'TA2', day: 'FRI', sessionType: 'theory', periodIndex: 8, startTime: '03:50 PM', endTime: '04:40 PM' }],
-  'TB2': [{ slotCode: 'TB2', day: 'MON', sessionType: 'theory', periodIndex: 9, startTime: '04:45 PM', endTime: '05:35 PM' }],
-  'TC2': [{ slotCode: 'TC2', day: 'TUE', sessionType: 'theory', periodIndex: 9, startTime: '04:45 PM', endTime: '05:35 PM' }],
-  'TD2': [{ slotCode: 'TD2', day: 'WED', sessionType: 'theory', periodIndex: 9, startTime: '04:45 PM', endTime: '05:35 PM' }],
-  'TE2': [{ slotCode: 'TE2', day: 'THU', sessionType: 'theory', periodIndex: 9, startTime: '04:45 PM', endTime: '05:35 PM' }],
-  'TF2': [{ slotCode: 'TF2', day: 'FRI', sessionType: 'theory', periodIndex: 9, startTime: '04:45 PM', endTime: '05:35 PM' }],
-  'TG2': [{ slotCode: 'TG2', day: 'MON', sessionType: 'theory', periodIndex: 10, startTime: '05:40 PM', endTime: '06:30 PM' }],
+  'TA2': [{ slotCode: 'TA2', day: 'FRI', sessionType: 'theory', periodIndex: 8, startTime: '04:00 PM', endTime: '04:50 PM' }],
+  'TB2': [{ slotCode: 'TB2', day: 'MON', sessionType: 'theory', periodIndex: 9, startTime: '05:00 PM', endTime: '05:50 PM' }],
+  'TC2': [{ slotCode: 'TC2', day: 'TUE', sessionType: 'theory', periodIndex: 9, startTime: '05:00 PM', endTime: '05:50 PM' }],
+  'TD2': [{ slotCode: 'TD2', day: 'WED', sessionType: 'theory', periodIndex: 9, startTime: '05:00 PM', endTime: '05:50 PM' }],
+  'TE2': [{ slotCode: 'TE2', day: 'THU', sessionType: 'theory', periodIndex: 9, startTime: '05:00 PM', endTime: '05:50 PM' }],
+  'TF2': [{ slotCode: 'TF2', day: 'FRI', sessionType: 'theory', periodIndex: 9, startTime: '05:00 PM', endTime: '05:50 PM' }],
+  'TG2': [{ slotCode: 'TG2', day: 'MON', sessionType: 'theory', periodIndex: 10, startTime: '06:00 PM', endTime: '06:50 PM' }],
 
-  'TAA1': [{ slotCode: 'TAA1', day: 'TUE', sessionType: 'theory', periodIndex: 4, startTime: '11:40 AM', endTime: '12:30 PM' }],
-  'TCC1': [{ slotCode: 'TCC1', day: 'THU', sessionType: 'theory', periodIndex: 4, startTime: '11:40 AM', endTime: '12:30 PM' }],
-  'TDD1': [{ slotCode: 'TDD1', day: 'FRI', sessionType: 'theory', periodIndex: 4, startTime: '11:40 AM', endTime: '12:30 PM' }],
+  'TAA1': [{ slotCode: 'TAA1', day: 'TUE', sessionType: 'theory', periodIndex: 4, startTime: '12:00 PM', endTime: '12:50 PM' }],
+  'TCC1': [{ slotCode: 'TCC1', day: 'THU', sessionType: 'theory', periodIndex: 4, startTime: '12:00 PM', endTime: '12:50 PM' }],
+  'TDD1': [{ slotCode: 'TDD1', day: 'FRI', sessionType: 'theory', periodIndex: 4, startTime: '12:00 PM', endTime: '12:50 PM' }],
 
-  'TAA2': [{ slotCode: 'TAA2', day: 'TUE', sessionType: 'theory', periodIndex: 10, startTime: '05:40 PM', endTime: '06:30 PM' }],
-  'TBB2': [{ slotCode: 'TBB2', day: 'WED', sessionType: 'theory', periodIndex: 10, startTime: '05:40 PM', endTime: '06:30 PM' }],
-  'TCC2': [{ slotCode: 'TCC2', day: 'THU', sessionType: 'theory', periodIndex: 10, startTime: '05:40 PM', endTime: '06:30 PM' }],
-  'TDD2': [{ slotCode: 'TDD2', day: 'FRI', sessionType: 'theory', periodIndex: 10, startTime: '05:40 PM', endTime: '06:30 PM' }],
+  'TAA2': [{ slotCode: 'TAA2', day: 'TUE', sessionType: 'theory', periodIndex: 10, startTime: '06:00 PM', endTime: '06:50 PM' }],
+  'TBB2': [{ slotCode: 'TBB2', day: 'WED', sessionType: 'theory', periodIndex: 10, startTime: '06:00 PM', endTime: '06:50 PM' }],
+  'TCC2': [{ slotCode: 'TCC2', day: 'THU', sessionType: 'theory', periodIndex: 10, startTime: '06:00 PM', endTime: '06:50 PM' }],
+  'TDD2': [{ slotCode: 'TDD2', day: 'FRI', sessionType: 'theory', periodIndex: 10, startTime: '06:00 PM', endTime: '06:50 PM' }],
 };
 
 // Register Lab Slots (L1..L60) - EXCLUDING L17 and L18 (Wednesday Extramural reserved)

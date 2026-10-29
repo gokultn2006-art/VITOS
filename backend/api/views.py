@@ -471,7 +471,23 @@ class TimetableRegisterView(APIView):
                 except ValueError as err:
                     return Response({'error': f"Course {course_code} has invalid slot combination: {str(err)}"}, status=status.HTTP_400_BAD_REQUEST)
 
+                period_times = {
+                    1: ("08:00 AM", "08:50 AM"),
+                    2: ("09:00 AM", "09:50 AM"),
+                    3: ("10:00 AM", "10:50 AM"),
+                    4: ("11:00 AM", "11:50 AM"),
+                    5: ("12:00 PM", "12:50 PM"),
+                    6: ("12:30 PM", "01:20 PM"),
+                    7: ("02:00 PM", "02:50 PM"),
+                    8: ("03:00 PM", "03:50 PM"),
+                    9: ("04:00 PM", "04:50 PM"),
+                    10: ("05:00 PM", "05:50 PM"),
+                    11: ("06:00 PM", "06:50 PM"),
+                    12: ("06:30 PM", "07:20 PM"),
+                    13: ("07:00 PM", "07:50 PM"),
+                }
                 for slot in resolved_slots:
+                    slot_start, slot_end = period_times.get(slot.period, ("08:00 AM", "08:50 AM"))
                     tc = TimetableClass.objects.create(
                         timetable=new_timetable,
                         course_code=course_code,
@@ -480,8 +496,8 @@ class TimetableRegisterView(APIView):
                         venue=venue,
                         slot_combination=slot_comb,
                         day=slot.day,
-                        start_time=f"08:00 AM" if slot.period == 0 else f"0{slot.period}:00 AM" if slot.period < 6 else f"0{slot.period-6}:00 PM",
-                        end_time=f"08:50 AM" if slot.period == 0 else f"0{slot.period}:50 AM" if slot.period < 6 else f"0{slot.period-6}:50 PM",
+                        start_time=slot_start,
+                        end_time=slot_end,
                         period=slot.period,
                         credits=credits_val
                     )

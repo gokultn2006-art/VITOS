@@ -81,13 +81,14 @@ class TimetableApiTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username="22BCE1024", password="password123")
+        self.auth_headers = {'HTTP_AUTHORIZATION': f'Bearer vitos_token_{self.user.id}_test'}
 
     def test_json_export(self):
         Timetable.objects.create(
             student=self.user, course_code="IMAT205L", course_name="Discrete Math",
             faculty="SHUBHANGI", room_number="SJT208", slot="C2", day="WED", start_time="14:00"
         )
-        response = self.client.get(reverse('timetable-export'))
+        response = self.client.get(reverse('timetable-export'), **self.auth_headers)
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["version"], 1)
@@ -120,7 +121,8 @@ class TimetableApiTest(TestCase):
         response = self.client.post(
             reverse('timetable-import'),
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
+            **self.auth_headers
         )
         self.assertIn(response.status_code, [200, 201])
 
@@ -128,7 +130,8 @@ class TimetableApiTest(TestCase):
         response = self.client.post(
             reverse('timetable-import'),
             data=json.dumps({"invalidKey": "badData"}),
-            content_type='application/json'
+            content_type='application/json',
+            **self.auth_headers
         )
         self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json())
@@ -147,7 +150,8 @@ class TimetableApiTest(TestCase):
         response = self.client.post(
             reverse('timetable-import'),
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
+            **self.auth_headers
         )
         self.assertEqual(response.status_code, 400)
         self.assertIn("invalid slot combination", response.json()["error"].lower())
