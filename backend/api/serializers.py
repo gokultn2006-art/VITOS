@@ -25,12 +25,24 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'isStaff', 'profile']
 
 class BuildingSerializer(serializers.ModelSerializer):
-    totalFloors = serializers.IntegerField(source='total_floors', read_only=True)
-    roomsCount = serializers.IntegerField(source='rooms_count', read_only=True)
+    totalFloors = serializers.IntegerField(source='total_floors', required=False)
+    roomsCount = serializers.IntegerField(source='rooms_count', required=False)
 
     class Meta:
         model = Building
         fields = ['id', 'name', 'code', 'lat', 'lng', 'total_floors', 'rooms_count', 'totalFloors', 'roomsCount']
+        extra_kwargs = {
+            'total_floors': {'required': False},
+            'rooms_count': {'required': False},
+        }
+
+    def to_internal_value(self, data):
+        normalized = data.copy() if hasattr(data, 'copy') else dict(data)
+        if 'totalFloors' in normalized and 'total_floors' not in normalized:
+            normalized['total_floors'] = normalized['totalFloors']
+        if 'roomsCount' in normalized and 'rooms_count' not in normalized:
+            normalized['rooms_count'] = normalized['roomsCount']
+        return super().to_internal_value(normalized)
 
 class RoomSerializer(serializers.ModelSerializer):
     buildingCode = serializers.CharField(source='building.code', read_only=True)

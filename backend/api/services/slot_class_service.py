@@ -455,90 +455,181 @@ MASTER_SLOT_CLASSES: Dict[str, List[Dict[str, Any]]] = {
 }
 
 
+def resolve_building_from_venue(venue: str) -> str:
+    v = (venue or '').upper()
+    if 'SJT' in v:
+        return 'Silver Jubilee Tower'
+    elif 'TT' in v:
+        return 'Technology Tower'
+    elif 'MB' in v or 'MGR' in v:
+        return 'Dr. M.G.R. Block (Main Building)'
+    elif 'GDN' in v:
+        return 'G.D. Naidu Block'
+    elif 'SMV' in v:
+        return 'Sir M. Visvesvaraya Block'
+    elif 'PRP' in v:
+        return 'Pearl Research Park'
+    elif 'CDMM' in v:
+        return 'CDMM Building'
+    elif 'MGB' in v:
+        return 'Mahatma Gandhi Block'
+    elif 'LIB' in v:
+        return 'Central Library'
+    elif 'AB' in v:
+        return 'Ambedkar Block'
+    return 'Campus Academic Block'
+
+def resolve_school_from_code(code: str) -> str:
+    c = (code or '').upper()
+    if 'CSE' in c or 'ITE' in c or 'SWE' in c:
+        return 'SCOPE (Computer Science)'
+    elif 'ECE' in c or 'ECM' in c:
+        return 'SENSE (Electronics)'
+    elif 'EEE' in c or 'EIE' in c:
+        return 'SELECT (Electrical)'
+    elif 'MAT' in c or 'PHY' in c or 'CHY' in c:
+        return 'SAS (Advanced Sciences)'
+    elif 'MEE' in c or 'MAN' in c:
+        return 'SMEC (Mechanical)'
+    elif 'STS' in c or 'ENG' in c or 'HUM' in c:
+        return 'SSL (Social Sciences & Languages)'
+    elif 'CLE' in c:
+        return 'SCE (Civil Engineering)'
+    elif 'BIT' in c:
+        return 'SBST (Bio Sciences)'
+    return 'VIT Academic Department'
+
 class SlotClassService:
     @classmethod
     def get_available_slots(cls) -> List[str]:
-        return list(SLOT_TIMINGS.keys())
+        all_slots = list(SLOT_TIMINGS.keys())
+        try:
+            uploaded_combos = TimetableClass.objects.values_list('slot_combination', flat=True)
+            active_slots = set()
+            for combo in uploaded_combos:
+                for s in (combo or '').split('+'):
+                    s_clean = s.strip().upper()
+                    if s_clean:
+                        active_slots.add(s_clean)
+            tt_slots = Timetable.objects.values_list('slot', flat=True)
+            for s in tt_slots:
+                if s:
+                    active_slots.add(s.strip().upper())
+            ordered = [s for s in all_slots if s in active_slots] + [s for s in all_slots if s not in active_slots]
+            return ordered
+        except Exception:
+            return all_slots
 
     @classmethod
     def get_classes_for_slot(cls, slot_query: str) -> Dict[str, Any]:
         slot = slot_query.strip().upper()
         timing = SLOT_TIMINGS.get(slot, 'Campus Regular Slot Timetable')
 
-        # 1. Search database models
-        db_classes = []
+        grouped_classes: Dict[str, Dict[str, Any]] = {}
+
+        # 1. Look up student-uploaded timetables from TimetableClass
         try:
-            db_timetables = Timetable.objects.filter(slot__iexact=slot)
-            for t in db_timetables:
-                db_classes.append({
-                    'course_code': t.course_code,
-                    'course_name': t.course_name,
-                    'faculty': t.faculty,
-                    'venue': t.room_number or t.building_code or 'Classroom',
-                    'building': t.building_name or 'Academic Block',
-                    'school': 'SCOPE (Computer Science)',
-                    'credits': 3,
-                    'enrolled': 65,
-                    'capacity': 70,
-                    'source': 'Database'
-                })
+            active_tc = TimetableClass.objects.filter(
+                timetable__active=True
+            ).select_related('timetable__user', 'timetable__user__profile')
+
+            for tc in active_tc:
+                comb_slots = [s.strip().upper() for s in (tc.slot_combination or '').split('+')]
+                if slot in comb_slots or tc.slot_combination.upper() == slot:
+                    user = tc.timetable.user
+                    prof = getattr(user, 'profile', None)
+                    student_info = {
+                        'id': user.id,
+                        'name': (prof.full_name if prof else '') or f"{user.first_name} {user.last_name}".strip() or user.username,
+                        'reg_no': (prof.reg_no if prof else '') or user.username,
+                        'email': user.email,
+                    }
+
+                    key = f"{tc.course_code.upper()}_{tc.venue.upper()}"
+                    if key not in grouped_classes:
+                        grouped_classes[key] = {
+                            'course_code': tc.course_code.upper(),
+                            'course_name': tc.course_name,
+                            'faculty': tc.faculty,
+                            'venue': tc.venue,
+                            'slot_combination': tc.slot_combination,
+                            'building': resolve_building_from_venue(tc.venue),
+                            'school': resolve_school_from_code(tc.course_code),
+                            'credits': int(tc.credits) if tc.credits else 3,
+                            'capacity': 70,
+                            'source': 'Uploaded by Students',
+                            'students': [],
+                        }
+
+                    if not any(s['id'] == student_info['id'] for s in grouped_classes[key]['students']):
+                        grouped_classes[key]['students'].append(student_info)
         except Exception:
             pass
 
+        # 2. Look up Timetable model
         try:
-            db_tc = TimetableClass.objects.filter(slot_combination__icontains=slot)
-            for tc in db_tc:
-                db_classes.append({
-                    'course_code': tc.course_code,
-                    'course_name': tc.course_name,
-                    'faculty': tc.faculty,
-                    'venue': tc.venue,
-                    'building': 'Campus Academic Zone',
-                    'school': 'Department of Computing',
-                    'credits': int(tc.credits),
-                    'enrolled': 60,
-                    'capacity': 70,
-                    'source': 'Student Schedule'
-                })
+            timetables = Timetable.objects.filter(slot__iexact=slot).select_related('student', 'student__profile')
+            for t in timetables:
+                user = t.student
+                prof = getattr(user, 'profile', None) if user else None
+                student_info = {
+                    'id': user.id if user else 0,
+                    'name': (prof.full_name if prof else '') or (f"{user.first_name} {user.last_name}".strip() if user else 'Registered Student') or getattr(user, 'username', 'Student'),
+                    'reg_no': (prof.reg_no if prof else '') or getattr(user, 'username', 'Student'),
+                    'email': getattr(user, 'email', ''),
+                } if user else None
+
+                venue = t.room_number or t.building_code or 'Classroom'
+                key = f"{t.course_code.upper()}_{venue.upper()}"
+                if key not in grouped_classes:
+                    grouped_classes[key] = {
+                        'course_code': t.course_code.upper(),
+                        'course_name': t.course_name,
+                        'faculty': t.faculty,
+                        'venue': venue,
+                        'slot_combination': t.slot,
+                        'building': t.building_name or resolve_building_from_venue(venue),
+                        'school': resolve_school_from_code(t.course_code),
+                        'credits': 3,
+                        'capacity': 70,
+                        'source': 'Uploaded by Students',
+                        'students': [],
+                    }
+                if student_info and not any(s['id'] == student_info['id'] for s in grouped_classes[key]['students']):
+                    grouped_classes[key]['students'].append(student_info)
         except Exception:
             pass
 
-        # 2. Master catalogue for the slot
-        catalog = MASTER_SLOT_CLASSES.get(slot, [])
-        combined = []
-        seen = set()
+        # 3. If students uploaded classes for this slot, prioritize them
+        student_classes = [c for c in grouped_classes.values() if len(c['students']) > 0]
+        final_classes = []
+        if student_classes:
+            for c in student_classes:
+                c['enrolled'] = len(c['students'])
+                final_classes.append(c)
+        elif grouped_classes:
+            for c in grouped_classes.values():
+                c['enrolled'] = len(c['students'])
+                final_classes.append(c)
+        else:
+            # Check catalogue offerings
+            catalog = MASTER_SLOT_CLASSES.get(slot, [])
+            for c in catalog:
+                final_classes.append({
+                    **c,
+                    'enrolled': 0,
+                    'students': [],
+                    'source': 'Curriculum Catalog (Awaiting Student Upload)'
+                })
 
-        for c in db_classes + catalog:
-            key = f"{c['course_code']}_{c['venue']}"
-            if key not in seen:
-                seen.add(key)
-                combined.append(c)
-
-        if not combined:
-            # Fallback for slots without explicit classes
-            combined = [
-                {
-                    'course_code': f"CSE{slot}01",
-                    'course_name': f"Advanced Topics in Slot {slot}",
-                    'faculty': 'Senior Department Faculty',
-                    'venue': f"SJT-30{slot[:1]}",
-                    'building': 'Silver Jubilee Tower',
-                    'school': 'SCOPE (Computer Science)',
-                    'credits': 3,
-                    'enrolled': 58,
-                    'capacity': 70,
-                    'source': 'Academic System'
-                }
-            ]
-
-        total_enrolled = sum(c.get('enrolled', 0) for c in combined)
-        total_capacity = sum(c.get('capacity', 0) for c in combined)
+        total_enrolled = sum(c.get('enrolled', 0) for c in final_classes)
+        total_capacity = sum(c.get('capacity', 70) for c in final_classes)
 
         return {
             'slot': slot,
             'timing': timing,
-            'total_classes': len(combined),
+            'total_classes': len(final_classes),
             'total_students_enrolled': total_enrolled,
             'total_capacity': total_capacity,
-            'classes': combined
+            'classes': final_classes
         }

@@ -705,8 +705,21 @@ class TimetableImportView(APIView):
         return reg_view.post(request)
 
 class BuildingViewSet(viewsets.ModelViewSet):
-    queryset = Building.objects.all()
+    queryset = Building.objects.all().order_by('name')
     serializer_class = BuildingSerializer
+
+    def get_object(self):
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        val = self.kwargs[lookup_url_kwarg]
+        if str(val).isdigit():
+            obj = Building.objects.filter(id=int(val)).first()
+            if obj:
+                return obj
+        code_clean = str(val).removeprefix('b_').upper()
+        obj = Building.objects.filter(code__iexact=code_clean).first()
+        if obj:
+            return obj
+        return super().get_object()
 
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()

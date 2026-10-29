@@ -549,24 +549,6 @@ export const navigationService = {
 };
 
 export const adminService = {
-  async getClassroomAvailability(): Promise<any[]> {
-    try {
-      const res = await api.get('/classrooms/availability/');
-      return res.data;
-    } catch {
-      return [
-        { id: 1, classroom: 'SJT208', date: '2026-08-21', startTime: '08:00 AM', endTime: '05:30 PM', status: 'UNCONFIRMED', notes: 'Awaiting admin review' }
-      ];
-    }
-  },
-  async reviewAvailability(availabilityId: number | null, classroom: string, status: string, notes = ''): Promise<any> {
-    try {
-      const res = await api.post('/admin/availability/review/', { availabilityId, classroom, status, notes });
-      return { success: true, data: res.data };
-    } catch (err: any) {
-      return { success: false, error: err.response?.data?.error || 'Forbidden: Admin access required.' };
-    }
-  },
   async getUsers(): Promise<any[]> {
     try {
       const res = await api.get('/admin/users/');
@@ -587,14 +569,42 @@ export const adminService = {
     } catch {
       return {
         slot,
-        timing: 'MON 08:00 AM - 08:50 AM, WED 08:50 AM - 09:40 AM',
-        total_classes: 3,
-        total_students_enrolled: 205,
-        total_capacity: 215,
+        timing: 'MON 08:00 AM - 08:50 AM, WED 09:00 AM - 09:50 AM',
+        total_classes: 2,
+        total_students_enrolled: 3,
+        total_capacity: 140,
         classes: [
-          { course_code: 'CSE3001', course_name: 'Software Engineering', faculty: 'Dr. K. Senthil Kumar', venue: 'SJT-208', building: 'Silver Jubilee Tower', school: 'SCOPE', credits: 3, enrolled: 68, capacity: 70 },
-          { course_code: 'ECE2002', course_name: 'Analog Electronic Circuits', faculty: 'Prof. M. Vijayalakshmi', venue: 'TT-412', building: 'Technology Tower', school: 'SENSE', credits: 3, enrolled: 65, capacity: 70 },
-          { course_code: 'MAT2001', course_name: 'Differential and Difference Equations', faculty: 'Dr. P. Ramesh', venue: 'GDN-108', building: 'GD Naidu Block', school: 'SAS', credits: 4, enrolled: 72, capacity: 75 }
+          {
+            course_code: 'BCSE301L',
+            course_name: 'Software Engineering',
+            faculty: 'DR. R. SELVARAJ - SCOPE',
+            venue: 'TT624',
+            building: 'Technology Tower',
+            school: 'SCOPE (Computer Science)',
+            credits: 3,
+            enrolled: 1,
+            capacity: 70,
+            source: 'Uploaded by Students',
+            students: [
+              { id: 1, name: 'Chris', reg_no: '22BCE1024', email: 'chris.student2022@vitstudent.ac.in' }
+            ]
+          },
+          {
+            course_code: 'BCSE202L',
+            course_name: 'Data Structures and Algorithms',
+            faculty: 'DR. R. SELVARAJ - SCOPE',
+            venue: 'TT624',
+            building: 'Technology Tower',
+            school: 'SCOPE (Computer Science)',
+            credits: 3,
+            enrolled: 2,
+            capacity: 70,
+            source: 'Uploaded by Students',
+            students: [
+              { id: 2, name: 'Rahul Sharma', reg_no: '23BCE0512', email: 'rahul.sharma2023@vitstudent.ac.in' },
+              { id: 3, name: 'Gokul T N', reg_no: '24MID0205', email: 'gokul.tn2024@vitstudent.ac.in' }
+            ]
+          }
         ]
       };
     }
@@ -620,18 +630,56 @@ export const adminService = {
       const res = await api.get('/buildings/');
       if (Array.isArray(res.data) && res.data.length > 0) {
         return res.data.map((b: any) => ({
-          id: `b_${b.code.toLowerCase()}`,
+          id: b.id,
+          codeId: `b_${b.code.toLowerCase()}`,
           name: b.name,
           code: b.code,
-          lat: b.lat,
-          lng: b.lng,
-          totalFloors: b.totalFloors || b.total_floors || 1,
-          roomsCount: b.roomsCount || b.rooms_count || 0,
+          lat: Number(b.lat),
+          lng: Number(b.lng),
+          totalFloors: b.totalFloors ?? b.total_floors ?? 1,
+          roomsCount: b.roomsCount ?? b.rooms_count ?? 0,
         }));
       }
       return buildings;
     } catch {
       return buildings;
+    }
+  },
+  async createBuilding(data: { name: string; code: string; lat: number; lng: number; totalFloors: number; roomsCount: number }): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const res = await api.post('/buildings/', {
+        name: data.name,
+        code: data.code.toUpperCase(),
+        lat: data.lat,
+        lng: data.lng,
+        total_floors: data.totalFloors,
+        rooms_count: data.roomsCount,
+        totalFloors: data.totalFloors,
+        roomsCount: data.roomsCount,
+      });
+      return { success: true, data: res.data };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.error || err.response?.data?.code?.[0] || 'Failed to create building.' };
+    }
+  },
+  async updateBuilding(id: string | number, data: Partial<{ name: string; code: string; lat: number; lng: number; totalFloors: number; roomsCount: number }>): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const payload: any = { ...data };
+      if (data.totalFloors !== undefined) payload.total_floors = data.totalFloors;
+      if (data.roomsCount !== undefined) payload.rooms_count = data.roomsCount;
+      if (data.code) payload.code = data.code.toUpperCase();
+      const res = await api.patch(`/buildings/${id}/`, payload);
+      return { success: true, data: res.data };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.error || 'Failed to update building.' };
+    }
+  },
+  async deleteBuilding(id: string | number): Promise<{ success: boolean; error?: string }> {
+    try {
+      await api.delete(`/buildings/${id}/`);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.error || 'Failed to delete building.' };
     }
   }
 };

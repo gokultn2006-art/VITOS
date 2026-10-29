@@ -8,6 +8,7 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
+import { timetableService } from '../services/api';
 
 export const TimetablePage: React.FC = () => {
   const { user } = useAuth();
@@ -55,13 +56,32 @@ export const TimetablePage: React.FC = () => {
     handleParseAndLoad(saved);
   }, [storageKey, handleParseAndLoad]);
 
-  const handleImportSubmit = (e: React.FormEvent) => {
+  const handleImportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Save to this student's own localStorage slot
     try { localStorage.setItem(storageKey, rawText); } catch {}
+    const parsed = parseVitCourseRegistrationText(rawText);
     handleParseAndLoad(rawText);
     setIsImportModalOpen(false);
-    setNotification(`Successfully parsed ${parseVitCourseRegistrationText(rawText).length} courses into your timetable!`);
+
+    // Sync to backend database so Slot Class Finder and schedule services see this student's timetable
+    if (parsed.length > 0) {
+      try {
+        const payloadCourses = parsed.map((c) => ({
+          courseCode: c.courseCode,
+          courseTitle: c.courseName,
+          slotCombination: c.slotString,
+          venue: c.venue,
+          faculty: c.faculty,
+          credits: c.courseType === 'lab' ? 1.5 : 3.0,
+        }));
+        await timetableService.registerTimetable(payloadCourses);
+      } catch (err) {
+        console.warn('Backend timetable sync notice:', err);
+      }
+    }
+
+    setNotification(`Successfully parsed and registered ${parsed.length} courses into your timetable!`);
   };
 
   const handleClearTimetable = () => {

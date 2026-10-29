@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   ShieldCheck,
   Building2,
-  DoorOpen,
   Trash2,
   Edit,
   CheckCircle2,
@@ -11,16 +10,18 @@ import {
   Search,
   Clock,
   Layers,
-  MapPin
+  MapPin,
+  Plus
 } from 'lucide-react';
 import { buildings } from '../data/mockData';
 import { adminService } from '../services/api';
 import { Card } from '../components/Card';
+import { Button } from '../components/Button';
+import { Modal } from '../components/Modal';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'users' | 'slot-classes' | 'availability' | 'buildings'>('users');
-  const [availabilities, setAvailabilities] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'users' | 'slot-classes' | 'buildings'>('users');
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
   // User Management State
@@ -29,6 +30,18 @@ export const AdminPage: React.FC = () => {
 
   // Buildings State
   const [buildingsList, setBuildingsList] = useState<any[]>(buildings);
+  const [buildingSearch, setBuildingSearch] = useState('');
+  const [isBuildingModalOpen, setIsBuildingModalOpen] = useState(false);
+  const [editingBuilding, setEditingBuilding] = useState<any | null>(null);
+  const [buildingForm, setBuildingForm] = useState({
+    name: '',
+    code: '',
+    lat: 12.97061,
+    lng: 79.15951,
+    totalFloors: 5,
+    roomsCount: 60,
+  });
+  const [savingBuilding, setSavingBuilding] = useState(false);
 
   // Slot Class Explorer State
   const [selectedSlot, setSelectedSlot] = useState('A1');
@@ -45,7 +58,6 @@ export const AdminPage: React.FC = () => {
   useEffect(() => {
     loadUsers();
     loadSlotClasses('A1');
-    loadAvailabilities();
     loadBuildings();
     adminService.getSlots().then((slots) => {
       if (slots && slots.length > 0) setSlotsList(slots);
@@ -60,22 +72,6 @@ export const AdminPage: React.FC = () => {
       }
     } catch {
       // Keep initial mockData buildings
-    }
-  };
-
-  const handleDeleteUser = async (u: any) => {
-    if (u.role === 'admin' || u.email === 'admin@vitstudent.ac.in') {
-      setStatusNotice('Cannot delete master administrator account.');
-      return;
-    }
-    if (window.confirm(`Are you sure you want to delete user ${u.fullName} (${u.email})? This action cannot be undone.`)) {
-      const res = await adminService.deleteUser(u.id);
-      if (res.success) {
-        setStatusNotice(`User ${u.fullName} (${u.email}) was deleted successfully.`);
-        setUsersList((prev) => prev.filter((item) => item.id !== u.id));
-      } else {
-        setStatusNotice(res.error || 'Failed to delete user.');
-      }
     }
   };
 
@@ -98,18 +94,106 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const loadAvailabilities = async () => {
-    const data = await adminService.getClassroomAvailability();
-    setAvailabilities(data);
+  const handleDeleteUser = async (u: any) => {
+    if (u.role === 'admin' || u.email === 'admin@vitstudent.ac.in') {
+      setStatusNotice('Cannot delete master administrator account.');
+      return;
+    }
+    if (window.confirm(`Are you sure you want to delete user ${u.fullName} (${u.email})? This action cannot be undone.`)) {
+      const res = await adminService.deleteUser(u.id);
+      if (res.success) {
+        setStatusNotice(`User ${u.fullName} (${u.email}) was deleted successfully.`);
+        setUsersList((prev) => prev.filter((item) => item.id !== u.id));
+      } else {
+        setStatusNotice(res.error || 'Failed to delete user.');
+      }
+    }
   };
 
-  const handleUpdateStatus = async (item: any, newStatus: string) => {
-    const res = await adminService.reviewAvailability(item.id, item.classroom, newStatus, 'Manually reviewed by Admin');
-    if (res.success) {
-      setStatusNotice(`Classroom ${item.classroom} updated to ${newStatus}`);
-      loadAvailabilities();
-    } else {
-      setStatusNotice(res.error || 'Forbidden: Only admin users can modify classroom availability.');
+  // Buildings Management Actions
+  const handleOpenAddBuilding = () => {
+    setEditingBuilding(null);
+    setBuildingForm({
+      name: '',
+      code: '',
+      lat: 12.97061,
+      lng: 79.15951,
+      totalFloors: 5,
+      roomsCount: 60,
+    });
+    setIsBuildingModalOpen(true);
+  };
+
+  const handleOpenEditBuilding = (b: any) => {
+    setEditingBuilding(b);
+    setBuildingForm({
+      name: b.name || '',
+      code: b.code || '',
+      lat: Number(b.lat) || 12.97061,
+      lng: Number(b.lng) || 79.15951,
+      totalFloors: Number(b.totalFloors || b.total_floors) || 1,
+      roomsCount: Number(b.roomsCount || b.rooms_count) || 0,
+    });
+    setIsBuildingModalOpen(true);
+  };
+
+  const handleSaveBuilding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!buildingForm.name.trim() || !buildingForm.code.trim()) {
+      alert('Building name and code are required.');
+      return;
+    }
+
+    setSavingBuilding(true);
+    try {
+      if (editingBuilding) {
+        // Edit existing building
+        const targetId = editingBuilding.id || editingBuilding.code;
+        const res = await adminService.updateBuilding(targetId, buildingForm);
+        if (res.success) {
+          setStatusNotice(`Building "${buildingForm.name}" (${buildingForm.code}) updated successfully.`);
+          setBuildingsList((prev) =>
+            prev.map((item) =>
+              (item.id === editingBuilding.id || item.code === editingBuilding.code)
+                ? { ...item, ...buildingForm, code: buildingForm.code.toUpperCase() }
+                : item
+            )
+          );
+          setIsBuildingModalOpen(false);
+        } else {
+          setStatusNotice(res.error || 'Failed to update building.');
+        }
+      } else {
+        // Create new building
+        const res = await adminService.createBuilding(buildingForm);
+        if (res.success) {
+          const newB = res.data || {
+            id: `b_${buildingForm.code.toLowerCase()}`,
+            ...buildingForm,
+            code: buildingForm.code.toUpperCase()
+          };
+          setStatusNotice(`Building "${buildingForm.name}" (${buildingForm.code}) created successfully.`);
+          setBuildingsList((prev) => [newB, ...prev]);
+          setIsBuildingModalOpen(false);
+        } else {
+          setStatusNotice(res.error || 'Failed to create building.');
+        }
+      }
+    } finally {
+      setSavingBuilding(false);
+    }
+  };
+
+  const handleDeleteBuilding = async (b: any) => {
+    if (window.confirm(`Are you sure you want to delete building "${b.name}" (${b.code})? This action cannot be undone.`)) {
+      const targetId = b.id || b.code;
+      const res = await adminService.deleteBuilding(targetId);
+      if (res.success) {
+        setStatusNotice(`Building "${b.name}" (${b.code}) was deleted successfully.`);
+        setBuildingsList((prev) => prev.filter((item) => item.id !== b.id && item.code !== b.code));
+      } else {
+        setStatusNotice(res.error || 'Failed to delete building.');
+      }
     }
   };
 
@@ -124,10 +208,19 @@ export const AdminPage: React.FC = () => {
     );
   });
 
+  // Filter buildings by search
+  const filteredBuildings = buildingsList.filter((b) => {
+    const q = buildingSearch.toLowerCase();
+    return (
+      (b.name || '').toLowerCase().includes(q) ||
+      (b.code || '').toLowerCase().includes(q)
+    );
+  });
+
   const stats = [
     { title: 'Registered Users', count: usersList.length, icon: Users, color: 'text-emerald-600 bg-emerald-50' },
     { title: 'Slot Class Matrix', count: `${slotsList.length} Slots`, icon: Layers, color: 'text-indigo-600 bg-indigo-50' },
-    { title: 'Classroom Availability', count: availabilities.length, icon: DoorOpen, color: 'text-[#9D0208] bg-amber-50' },
+    { title: 'Campus Buildings', count: `${buildingsList.length} Buildings`, icon: Building2, color: 'text-amber-600 bg-amber-50' },
   ];
 
   return (
@@ -141,7 +234,7 @@ export const AdminPage: React.FC = () => {
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight">System Management Panel</h1>
           <p className="text-xs md:text-sm text-stone-200 mt-1">
-            Manage registered accounts, inspect courses across timetable slots, and review campus resources.
+            Manage registered accounts, inspect student timetable slot distributions, and maintain campus buildings.
           </p>
         </div>
       </div>
@@ -153,7 +246,7 @@ export const AdminPage: React.FC = () => {
             <CheckCircle2 className="w-4 h-4 text-[#9D0208] shrink-0" />
             <span>{statusNotice}</span>
           </span>
-          <button onClick={() => setStatusNotice(null)} className="font-bold underline text-[11px]">
+          <button onClick={() => setStatusNotice(null)} className="font-bold underline text-[11px] cursor-pointer">
             Dismiss
           </button>
         </div>
@@ -184,7 +277,7 @@ export const AdminPage: React.FC = () => {
           <div className="flex bg-stone-100 p-1 rounded-xl flex-wrap gap-1">
             <button
               onClick={() => setActiveTab('users')}
-              className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'users' ? 'bg-white text-[#9D0208] shadow-xs' : 'text-stone-500 hover:text-stone-800'
               }`}
             >
@@ -197,7 +290,7 @@ export const AdminPage: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('slot-classes')}
-              className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'slot-classes' ? 'bg-white text-[#9D0208] shadow-xs' : 'text-stone-500 hover:text-stone-800'
               }`}
             >
@@ -206,23 +299,16 @@ export const AdminPage: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab('availability')}
-              className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
-                activeTab === 'availability' ? 'bg-white text-[#9D0208] shadow-xs' : 'text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <DoorOpen className="w-3.5 h-3.5" />
-              <span>Classroom Review</span>
-            </button>
-
-            <button
               onClick={() => setActiveTab('buildings')}
-              className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'buildings' ? 'bg-white text-[#9D0208] shadow-xs' : 'text-stone-500 hover:text-stone-800'
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span>Buildings</span>
+              <span>Campus Buildings</span>
+              <span className="text-[10px] bg-amber-100 text-[#9D0208] px-1.5 py-0.2 rounded-full font-bold ml-1">
+                {buildingsList.length}
+              </span>
             </button>
           </div>
         </div>
@@ -327,7 +413,7 @@ export const AdminPage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: SLOT CLASS FINDER */}
+        {/* TAB 2: SLOT CLASS FINDER (Filled based on student uploaded timetables) */}
         {activeTab === 'slot-classes' && (
           <div className="space-y-4">
             {/* Slot Selector Chips */}
@@ -366,7 +452,7 @@ export const AdminPage: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-slate-600">
-                    Showing all lecture halls, faculty, and academic courses scheduled for this specific slot across campus.
+                    Aggregated directly from timetables uploaded and registered by students across campus.
                   </p>
                 </div>
 
@@ -376,9 +462,9 @@ export const AdminPage: React.FC = () => {
                     <p className="text-sm font-extrabold text-[#9D0208]">{slotData.total_classes}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] text-slate-400 uppercase">Seat Occupancy</p>
+                    <p className="text-[10px] text-slate-400 uppercase">Students Enrolled</p>
                     <p className="text-sm font-extrabold text-slate-800">
-                      {slotData.total_students_enrolled} / {slotData.total_capacity}
+                      {slotData.total_students_enrolled} Enrolled
                     </p>
                   </div>
                 </div>
@@ -394,7 +480,7 @@ export const AdminPage: React.FC = () => {
                     <th className="py-3 px-4">Faculty</th>
                     <th className="py-3 px-4">Venue & Block</th>
                     <th className="py-3 px-4">School</th>
-                    <th className="py-3 px-4">Enrollment</th>
+                    <th className="py-3 px-4">Enrolled Students (Uploaded)</th>
                     <th className="py-3 px-4 text-right">Map Route</th>
                   </tr>
                 </thead>
@@ -406,6 +492,11 @@ export const AdminPage: React.FC = () => {
                           {cls.course_code}
                         </span>
                         <span className="font-bold text-slate-800">{cls.course_name}</span>
+                        {cls.slot_combination && (
+                          <span className="block font-mono text-[10px] text-stone-400 mt-0.5">
+                            Slot: {cls.slot_combination}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 px-4 font-medium text-slate-800">
                         {cls.faculty}
@@ -418,18 +509,29 @@ export const AdminPage: React.FC = () => {
                         {cls.school}
                       </td>
                       <td className="py-3 px-4">
-                        <div className="w-28 space-y-1">
-                          <div className="flex justify-between text-[10px] text-slate-500 font-medium">
-                            <span>{cls.enrolled} Enrolled</span>
-                            <span>{cls.capacity} Max</span>
+                        {cls.students && cls.students.length > 0 ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {cls.students.map((st: any) => (
+                                <span
+                                  key={st.id || st.reg_no}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold"
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                  <span>{st.name}</span>
+                                  <span className="text-[10px] text-emerald-600 font-mono">({st.reg_no})</span>
+                                </span>
+                              ))}
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              Uploaded by {cls.students.length} student{cls.students.length > 1 ? 's' : ''}
+                            </span>
                           </div>
-                          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                            <div
-                              className="bg-[#9D0208] h-full rounded-full"
-                              style={{ width: `${Math.min(100, Math.round((cls.enrolled / cls.capacity) * 100))}%` }}
-                            />
-                          </div>
-                        </div>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 italic">
+                            No student uploaded timetable yet
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-right">
                         <button
@@ -445,8 +547,13 @@ export const AdminPage: React.FC = () => {
                   ))}
                   {(!slotData || !slotData.classes || slotData.classes.length === 0) && (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-slate-400 text-xs">
-                        No scheduled classes found for slot {selectedSlot}.
+                      <td colSpan={6} className="text-center py-12 text-slate-400 text-xs">
+                        <div className="max-w-md mx-auto space-y-2">
+                          <p className="font-bold text-slate-600 text-sm">No Student Timetables Uploaded for Slot {selectedSlot}</p>
+                          <p className="text-slate-400">
+                            When students upload or import their VTOP timetable slips containing slot {selectedSlot}, their classes, enrolled student names, and venues will automatically populate here.
+                          </p>
+                        </div>
                       </td>
                     </tr>
                   )}
@@ -456,102 +563,203 @@ export const AdminPage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 3: CLASSROOM REVIEW */}
-        {activeTab === 'availability' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase">
-                  <th className="py-3 px-4">Classroom</th>
-                  <th className="py-3 px-4">Date & Time</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Decision Source</th>
-                  <th className="py-3 px-4 text-right">Admin Decision Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                {availabilities.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50">
-                    <td className="py-3 px-4 font-bold text-slate-800">{item.classroom}</td>
-                    <td className="py-3 px-4 font-mono">{item.date} ({item.startTime} - {item.endTime})</td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          item.status === 'AVAILABLE'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : item.status === 'OCCUPIED'
-                            ? 'bg-rose-100 text-rose-800'
-                            : 'bg-amber-100 text-amber-800'
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500">{item.source || 'UNCONFIRMED'}</td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex justify-end gap-1.5">
-                        <button
-                          onClick={() => handleUpdateStatus(item, 'AVAILABLE')}
-                          className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold"
-                        >
-                          Mark Available
-                        </button>
-                        <button
-                          onClick={() => handleUpdateStatus(item, 'OCCUPIED')}
-                          className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[11px] font-bold"
-                        >
-                          Mark Occupied
-                        </button>
-                        <button
-                          onClick={() => handleUpdateStatus(item, 'UNCONFIRMED')}
-                          className="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-[11px] font-bold"
-                        >
-                          Unconfirm
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* TAB 4: BUILDINGS */}
+        {/* TAB 3: CAMPUS BUILDINGS (With Working Edit & Delete Actions) */}
         {activeTab === 'buildings' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase">
-                  <th className="py-3 px-4">Name / ID</th>
-                  <th className="py-3 px-4">Building Code</th>
-                  <th className="py-3 px-4">Details</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                {buildingsList.map((b) => (
-                  <tr key={b.id} className="hover:bg-slate-50">
-                    <td className="py-3 px-4 font-bold text-slate-800">{b.name}</td>
-                    <td className="py-3 px-4 font-mono">{b.code}</td>
-                    <td className="py-3 px-4">{b.totalFloors} Floors • {b.roomsCount} Rooms</td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button className="p-1 text-slate-500 hover:text-[#9D0208]">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button className="p-1 text-slate-500 hover:text-rose-600">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 absolute left-3 top-3 text-stone-400" />
+                <input
+                  type="text"
+                  value={buildingSearch}
+                  onChange={(e) => setBuildingSearch(e.target.value)}
+                  placeholder="Filter by building name or code..."
+                  className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#9D0208] focus:bg-white"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <span className="text-xs text-slate-500 font-medium">
+                  Showing <strong className="text-slate-800">{filteredBuildings.length}</strong> of {buildingsList.length} buildings
+                </span>
+                <Button
+                  size="sm"
+                  icon={<Plus className="w-4 h-4" />}
+                  onClick={handleOpenAddBuilding}
+                  className="shrink-0"
+                >
+                  Add Building
+                </Button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-slate-100">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase">
+                    <th className="py-3 px-4">Building Name</th>
+                    <th className="py-3 px-4">Building Code</th>
+                    <th className="py-3 px-4">Capacity & Structure</th>
+                    <th className="py-3 px-4">GPS Coordinates</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+                  {filteredBuildings.map((b) => (
+                    <tr key={b.id || b.code} className="hover:bg-amber-50/30 transition-colors">
+                      <td className="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-[#9D0208]" />
+                        <span>{b.name}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="font-mono font-bold bg-amber-50 text-[#9D0208] px-2 py-0.5 rounded border border-amber-200/80 text-[11px]">
+                          {b.code}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-600">
+                        {b.totalFloors || b.total_floors || 1} Floors • {b.roomsCount || b.rooms_count || 0} Rooms / Labs
+                      </td>
+                      <td className="py-3 px-4 font-mono text-[11px] text-slate-400">
+                        {Number(b.lat).toFixed(5)}, {Number(b.lng).toFixed(5)}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditBuilding(b)}
+                            title={`Edit ${b.name}`}
+                            className="p-1.5 text-slate-500 hover:text-[#9D0208] hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBuilding(b)}
+                            title={`Delete ${b.name}`}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredBuildings.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="text-center py-8 text-slate-400 text-xs">
+                        No buildings match your filter query.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </Card>
+
+      {/* ADD / EDIT BUILDING MODAL */}
+      <Modal
+        isOpen={isBuildingModalOpen}
+        onClose={() => setIsBuildingModalOpen(false)}
+        title={editingBuilding ? `Edit Building: ${editingBuilding.name}` : 'Add New Campus Building'}
+      >
+        <form onSubmit={handleSaveBuilding} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Building Full Name</label>
+            <input
+              type="text"
+              required
+              value={buildingForm.name}
+              onChange={(e) => setBuildingForm({ ...buildingForm, name: e.target.value })}
+              placeholder="e.g. Pearl Research Park"
+              className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#9D0208]"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Building Code</label>
+              <input
+                type="text"
+                required
+                value={buildingForm.code}
+                onChange={(e) => setBuildingForm({ ...buildingForm, code: e.target.value.toUpperCase() })}
+                placeholder="e.g. PRP"
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-mono uppercase text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#9D0208]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Total Floors</label>
+              <input
+                type="number"
+                min="1"
+                max="30"
+                required
+                value={buildingForm.totalFloors}
+                onChange={(e) => setBuildingForm({ ...buildingForm, totalFloors: parseInt(e.target.value) || 1 })}
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#9D0208]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Rooms / Labs</label>
+              <input
+                type="number"
+                min="0"
+                max="1000"
+                required
+                value={buildingForm.roomsCount}
+                onChange={(e) => setBuildingForm({ ...buildingForm, roomsCount: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#9D0208]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Latitude</label>
+              <input
+                type="number"
+                step="0.00001"
+                required
+                value={buildingForm.lat}
+                onChange={(e) => setBuildingForm({ ...buildingForm, lat: parseFloat(e.target.value) || 12.97061 })}
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-mono text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#9D0208]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Longitude</label>
+              <input
+                type="number"
+                step="0.00001"
+                required
+                value={buildingForm.lng}
+                onChange={(e) => setBuildingForm({ ...buildingForm, lng: parseFloat(e.target.value) || 79.15951 })}
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-mono text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#9D0208]"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsBuildingModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={savingBuilding}
+            >
+              {savingBuilding ? 'Saving...' : (editingBuilding ? 'Update Building' : 'Add Building')}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

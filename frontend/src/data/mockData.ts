@@ -187,9 +187,22 @@ export const buildings: Building[] = [
   { id: 'b_prp', name: 'Pearl Research Park', code: 'PRP', lat: 12.97125, lng: 79.16628, totalFloors: 8, roomsCount: 120 },
   { id: 'b_smv', name: 'Sir M. Visvesvaraya Block', code: 'SMV', lat: 12.96924, lng: 79.15773, totalFloors: 6, roomsCount: 90 },
   { id: 'b_mb', name: 'Main Building (Dr. MGR Block)', code: 'MB', lat: 12.96925, lng: 79.15585, totalFloors: 4, roomsCount: 65 },
-  { id: 'b_lib', name: 'Central Library', code: 'LIB', lat: 12.96933, lng: 79.15685, totalFloors: 6, roomsCount: 24 },
+  { id: 'b_lib', name: 'Periyar Central Library', code: 'LIB', lat: 12.96933, lng: 79.15685, totalFloors: 6, roomsCount: 24 },
   { id: 'b_gdn', name: 'G.D. Naidu Block', code: 'GDN', lat: 12.96998, lng: 79.15484, totalFloors: 5, roomsCount: 80 },
-  { id: 'b_cdmm', name: 'CDMM Building', code: 'CDMM', lat: 12.96922, lng: 79.15498, totalFloors: 4, roomsCount: 45 }
+  { id: 'b_cdmm', name: 'CDMM Building', code: 'CDMM', lat: 12.96922, lng: 79.15498, totalFloors: 4, roomsCount: 45 },
+  { id: 'b_mgb', name: 'Mahatma Gandhi Block', code: 'MGB', lat: 12.96870, lng: 79.15550, totalFloors: 5, roomsCount: 75 },
+  { id: 'b_ab', name: 'Dr. Ambedkar Block (CS Block)', code: 'AB', lat: 12.96980, lng: 79.15620, totalFloors: 4, roomsCount: 50 },
+  { id: 'b_arc', name: 'Architecture Block', code: 'ARC', lat: 12.97020, lng: 79.15720, totalFloors: 3, roomsCount: 30 },
+  { id: 'b_tbi', name: 'Technology Business Incubator', code: 'TBI', lat: 12.97110, lng: 79.16010, totalFloors: 4, roomsCount: 35 },
+  { id: 'b_aa', name: 'Anna Auditorium Complex', code: 'AA', lat: 12.96910, lng: 79.15810, totalFloors: 2, roomsCount: 6 },
+  { id: 'b_kmc', name: 'Kamaraj Memorial Centre', code: 'KMC', lat: 12.96840, lng: 79.15710, totalFloors: 3, roomsCount: 25 },
+  { id: 'b_fm', name: 'Food Mall & Dining Complex', code: 'FM', lat: 12.96980, lng: 79.16050, totalFloors: 3, roomsCount: 18 },
+  { id: 'b_hdc', name: 'Health & Diagnostic Centre', code: 'HDC', lat: 12.97050, lng: 79.15850, totalFloors: 2, roomsCount: 15 },
+  { id: 'b_mhb', name: "Men's Hostel B Block", code: 'MH-B', lat: 12.97454, lng: 79.15741, totalFloors: 6, roomsCount: 240 },
+  { id: 'b_mhd', name: "Men's Hostel D Block", code: 'MH-D', lat: 12.97410, lng: 79.15820, totalFloors: 7, roomsCount: 280 },
+  { id: 'b_mhq', name: "Men's Hostel Q Block", code: 'MH-Q', lat: 12.97520, lng: 79.16010, totalFloors: 14, roomsCount: 450 },
+  { id: 'b_lha', name: "Ladies' Hostel A Block", code: 'LH-A', lat: 12.96832, lng: 79.15821, totalFloors: 6, roomsCount: 220 },
+  { id: 'b_lhe', name: "Ladies' Hostel E Block", code: 'LH-E', lat: 12.96780, lng: 79.15910, totalFloors: 8, roomsCount: 310 },
 ];
 
 export const studentTimetable: TimetableEntry[] = [
