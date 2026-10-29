@@ -57,7 +57,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
       const boldMatch = part.match(/^\*\*([^*]+?)\*\*$/);
       if (boldMatch) {
         return (
-          <strong key={pIdx} className="font-extrabold text-[#03071E]">
+          <strong key={pIdx} className={`font-extrabold ${isAssistant ? 'text-[#03071E]' : 'text-white'}`}>
             {renderInline(boldMatch[1], depth + 1)}
           </strong>
         );
@@ -67,7 +67,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
       const codeMatch = part.match(/^`([^`]+?)`$/);
       if (codeMatch) {
         return (
-          <code key={pIdx} className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-mono text-xs">
+          <code key={pIdx} className={`px-1.5 py-0.5 rounded ${isAssistant ? 'bg-slate-100 text-slate-800' : 'bg-white/20 text-white'} font-mono text-xs`}>
             {codeMatch[1]}
           </code>
         );
@@ -77,7 +77,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
       const italicMatch = part.match(/^\*([^*]+?)\*$/);
       if (italicMatch) {
         return (
-          <em key={pIdx} className="italic text-slate-700">
+          <em key={pIdx} className={`italic ${isAssistant ? 'text-slate-700' : 'text-white/90'}`}>
             {renderInline(italicMatch[1], depth + 1)}
           </em>
         );
@@ -153,8 +153,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
         const itemContent = bulletMatch[2];
         elements.push(
           <div key={`bullet_${idx}`} className="flex items-start gap-2.5 my-1.5 pl-1 leading-relaxed">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#DC2F02] mt-2 shrink-0 shadow-2xs" />
-            <div className="flex-1 text-stone-800 text-xs md:text-sm">
+            <span className={`w-1.5 h-1.5 rounded-full ${isAssistant ? 'bg-[#DC2F02]' : 'bg-white'} mt-2 shrink-0 shadow-2xs`} />
+            <div className={`flex-1 ${isAssistant ? 'text-stone-800' : 'text-white'} text-xs md:text-sm`}>
               {renderInline(itemContent)}
             </div>
           </div>
@@ -169,10 +169,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
         const itemContent = numMatch[2];
         elements.push(
           <div key={`num_${idx}`} className="flex items-start gap-2.5 my-1.5 pl-1 leading-relaxed">
-            <span className="text-[11px] font-bold text-[#9D0208] bg-amber-100 px-1.5 py-0.5 rounded-md border border-amber-300/70 mt-0.5 shrink-0 shadow-2xs">
+            <span className={`text-[11px] font-bold ${isAssistant ? 'text-[#9D0208] bg-amber-100 border border-amber-300/70' : 'text-[#9D0208] bg-white border border-white/80'} px-1.5 py-0.5 rounded-md mt-0.5 shrink-0 shadow-2xs`}>
               {num}
             </span>
-            <div className="flex-1 text-stone-800 text-xs md:text-sm">
+            <div className={`flex-1 ${isAssistant ? 'text-stone-800' : 'text-white'} text-xs md:text-sm`}>
               {renderInline(itemContent)}
             </div>
           </div>
@@ -183,7 +183,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
       // Regular Paragraph
       const isIndented = line.startsWith('   ') || line.startsWith('  ');
       elements.push(
-        <p key={`p_${idx}`} className={`my-1.5 text-slate-700 text-xs md:text-sm leading-relaxed ${isIndented ? 'pl-6 -mt-1 text-stone-600' : ''}`}>
+        <p key={`p_${idx}`} className={`my-1.5 ${isAssistant ? 'text-slate-700' : 'text-white'} text-xs md:text-sm leading-relaxed ${isIndented ? (isAssistant ? 'pl-6 -mt-1 text-stone-600' : 'pl-6 -mt-1 text-white/80') : ''}`}>
           {renderInline(line)}
         </p>
       );
@@ -293,9 +293,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onQuickAction
           )}
         </div>
 
-        <span className="text-[10px] font-medium text-stone-400 mt-1 px-1 inline-block">
-          {message.timestamp}
-        </span>
+        <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'}`}>
+          <span className="text-[10px] font-medium text-stone-400 mt-1 px-1 inline-block">
+            {message.timestamp}
+          </span>
+        </div>
       </div>
 
       {!isAssistant && (
