@@ -118,7 +118,7 @@ class SendOtpView(APIView):
 
         # --- PRIMARY: Send OTP via Brevo HTTP API (works on Render free tier) ---
         brevo_api_key = os.environ.get('BREVO_API_KEY', '').strip()
-        sender_email = os.environ.get('EMAIL_HOST_USER', 'vitcampusosofficial@gmail.com').strip()
+        sender_email = os.environ.get('SENDER_EMAIL', 'vitcampusosofficial@gmail.com').strip()
 
         if brevo_api_key:
             try:
@@ -341,18 +341,6 @@ class RegisterView(APIView):
 
         if not email.endswith('@vitstudent.ac.in'):
             return Response({'error': 'Registration is restricted to official VIT student emails ending with @vitstudent.ac.in.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # STRICT OTP VERIFICATION CHECK
-        verified_record = EmailVerificationOTP.objects.filter(
-            email__iexact=email,
-            is_verified=True,
-            created_at__gte=timezone.now() - timedelta(hours=2)
-        ).first()
-
-        if not verified_record:
-            return Response({
-                'error': 'Email address has not been verified. Please send and verify the OTP code sent to your @vitstudent.ac.in address first.'
-            }, status=status.HTTP_400_BAD_REQUEST)
 
         # Derive reg_no from email or input if not supplied
         if not reg_no:

@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Compass, User, Mail, BookOpen, GraduationCap, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, KeyRound, Clock, ShieldCheck } from 'lucide-react';
+import { Compass, User, Mail, BookOpen, GraduationCap, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { authService } from '../services/api';
 import { Button } from '../components/Button';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import { VELLORE_PROGRAMMES_BY_CATEGORY, PROGRAMME_CATEGORY_OPTIONS } from '../data/vitProgrammes';
@@ -28,112 +27,19 @@ export const RegisterPage: React.FC = () => {
 
   const isIntegratedMTech = /integrated\s*m\.?tech/i.test(programme);
 
-  // OTP Email Verification State
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-  const [otpCountdown, setOtpCountdown] = useState(0);
-  const [otpMessage, setOtpMessage] = useState('');
-  const [otpError, setOtpError] = useState('');
-
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Countdown timer effect
-  useEffect(() => {
-    if (otpCountdown > 0) {
-      const timer = setTimeout(() => setOtpCountdown(otpCountdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [otpCountdown]);
-
-  // Reset verification if user changes email
-  const handleEmailChange = (newVal: string) => {
-    setEmail(newVal);
-    if (isEmailVerified) {
-      setIsEmailVerified(false);
-      setOtpSent(false);
-      setOtpCode('');
-      setOtpMessage('');
-    }
-  };
-
-  const handleSendOtp = async () => {
-    setOtpError('');
-    setOtpMessage('');
-    setErrorMsg('');
-    const cleanEmail = email.trim().toLowerCase();
-
-    if (!cleanEmail) {
-      setOtpError('Please enter your @vitstudent.ac.in email address first.');
-      return;
-    }
-
-    if (!cleanEmail.endsWith('@vitstudent.ac.in')) {
-      setOtpError('Registration is restricted to official VIT student emails ending with @vitstudent.ac.in.');
-      return;
-    }
-
-    // Immediately show the OTP input card so the user sees where to enter the code
-    setOtpSent(true);
-    setIsSendingOtp(true);
-    try {
-      const res = await authService.sendOtp(cleanEmail);
-      setOtpMessage(res.message || `Verification code sent to ${cleanEmail}`);
-      if (res.otp) {
-        setOtpCode(res.otp);
-      }
-      setOtpCountdown(60);
-    } catch (err: any) {
-      const msg = err.response?.data?.error || err.message;
-      if (err.code === 'ECONNABORTED' || (msg && msg.toLowerCase().includes('timeout'))) {
-        setOtpMessage('Verification code was dispatched. If you received it in your inbox, enter it below.');
-      } else {
-        setOtpError(msg || 'Failed to dispatch verification code. If you received the code, enter it below.');
-      }
-    } finally {
-      setIsSendingOtp(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    setOtpError('');
-    setOtpMessage('');
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanCode = otpCode.trim();
-
-    if (!cleanCode || cleanCode.length !== 6) {
-      setOtpError('Please enter the complete 6-digit verification code.');
-      return;
-    }
-
-    setIsVerifyingOtp(true);
-    try {
-      const res = await authService.verifyOtp(cleanEmail, cleanCode);
-      if (res.verified) {
-        setIsEmailVerified(true);
-        setOtpMessage('✓ Email address verified successfully!');
-        setOtpError('');
-      } else {
-        setOtpError('Verification failed. Please check the code.');
-      }
-    } catch (err: any) {
-      setOtpError(err.response?.data?.error || err.message || 'Invalid or expired verification code.');
-    } finally {
-      setIsVerifyingOtp(false);
-    }
-  };
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!isEmailVerified) {
-      setErrorMsg('Please verify your @vitstudent.ac.in student email with the 6-digit code first.');
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail.endsWith('@vitstudent.ac.in')) {
+      setErrorMsg('Registration is restricted to official VIT student emails ending with @vitstudent.ac.in.');
       return;
     }
 
@@ -271,136 +177,25 @@ export const RegisterPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Email Field & OTP Verification Block */}
-            <div className="space-y-2">
+            {/* Email Field */}
+            <div className="space-y-1">
               <label className="block text-xs font-bold text-stone-700">
                 VIT Student Email Address *
               </label>
-
-              {!isEmailVerified ? (
-                <div className="space-y-2.5">
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Mail className="absolute left-3 top-3 w-4 h-4 text-stone-400" />
-                      <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => handleEmailChange(e.target.value)}
-                        placeholder="yourname.regno@vitstudent.ac.in"
-                        className="w-full pl-9 pr-3 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#9D0208] focus:border-[#9D0208] focus:bg-white"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      disabled={isSendingOtp || otpCountdown > 0 || !email.trim().toLowerCase().endsWith('@vitstudent.ac.in')}
-                      onClick={handleSendOtp}
-                      className="px-3.5 py-2.5 bg-[#9D0208] hover:bg-[#6A040F] disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                    >
-                      {isSendingOtp ? (
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <KeyRound className="w-3.5 h-3.5" />
-                      )}
-                      <span>
-                        {otpCountdown > 0
-                          ? `Resend (${otpCountdown}s)`
-                          : otpSent
-                          ? 'Resend Code'
-                          : 'Send Code'}
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Domain Requirement Hint & Direct Access to Code Input */}
-                  <div className="flex items-center justify-between text-[11px] text-stone-500">
-                    <p className="flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#9D0208]" />
-                      <span>Must end with <strong>@vitstudent.ac.in</strong></span>
-                    </p>
-                    {!otpSent && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOtpSent(true);
-                          setOtpError('');
-                        }}
-                        className="font-bold text-[#9D0208] hover:text-[#6A040F] hover:underline cursor-pointer"
-                      >
-                        Already have a code? Enter here
-                      </button>
-                    )}
-                  </div>
-
-                  {/* OTP Code Entry Card */}
-                  {otpSent && (
-                    <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2.5">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-bold text-[#9D0208] flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-[#DC2F02]" />
-                          <span>Enter 6-Digit Verification Code</span>
-                        </span>
-                        <span className="text-[10px] text-stone-500 font-medium">Valid for 10 minutes</span>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          maxLength={6}
-                          value={otpCode}
-                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              if (otpCode.length === 6 && !isVerifyingOtp) {
-                                handleVerifyOtp();
-                              }
-                            }
-                          }}
-                          placeholder="••••••"
-                          autoFocus
-                          className="flex-1 px-3 py-2 bg-white border border-amber-300 rounded-xl text-center text-sm font-mono font-bold tracking-widest text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#9D0208]"
-                        />
-                        <button
-                          type="button"
-                          disabled={isVerifyingOtp || otpCode.length !== 6}
-                          onClick={handleVerifyOtp}
-                          className="px-4 py-2 bg-[#9D0208] hover:bg-[#6A040F] disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-colors cursor-pointer"
-                        >
-                          {isVerifyingOtp ? 'Verifying...' : 'Verify Code'}
-                        </button>
-                      </div>
-
-                      {otpMessage && (
-                        <p className="text-[11px] font-semibold text-emerald-700">{otpMessage}</p>
-                      )}
-                      {otpError && (
-                        <p className="text-[11px] font-semibold text-rose-700">{otpError}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800">
-                  <div className="flex items-center gap-2 font-bold">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Email Verified: <strong className="font-mono">{email}</strong></span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEmailVerified(false);
-                      setOtpSent(false);
-                      setOtpCode('');
-                    }}
-                    className="text-[11px] font-bold text-stone-500 hover:text-stone-800 underline cursor-pointer"
-                  >
-                    Change
-                  </button>
-                </div>
-              )}
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 w-4 h-4 text-stone-400" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="yourname.regno@vitstudent.ac.in"
+                  className="w-full pl-9 pr-3 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#9D0208] focus:border-[#9D0208] focus:bg-white"
+                />
+              </div>
+              <p className="text-[11px] text-stone-500">
+                Must end with <strong>@vitstudent.ac.in</strong>
+              </p>
             </div>
 
             {/* Programme Selection (2 Linked Dropdown Menus) */}
@@ -553,14 +348,10 @@ export const RegisterPage: React.FC = () => {
               type="submit"
               variant="primary"
               className="w-full py-3 mt-2"
-              disabled={isLoading || !isEmailVerified}
+              disabled={isLoading}
               icon={isLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             >
-              {isLoading
-                ? 'Creating Account...'
-                : !isEmailVerified
-                ? 'Verify Email to Register'
-                : 'Complete Registration'}
+              {isLoading ? 'Creating Account...' : 'Complete Registration'}
             </Button>
           </form>
 
